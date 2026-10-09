@@ -20,7 +20,39 @@
           "studentTask": "描述如何组织现场风险排查、安全交底和开工确认。",
           "greeting": "你好，进入安全交底阶段。请先说说你认为最需要识别的现场风险。",
           "rubric": "危险源识别、审批确认、现场复核、应急准备",
-          "hints": "我们可以先考虑现场危险源有哪些。",
+          "hints": "我们可以先考虑现场危险源有哪些。",{
+  "format": "matin-studio",
+  "version": 5,
+  "project": {
+    "id": "proj-df92803f-710b-451d-ae70-070127ef4d1b",
+    "published": true,
+    "title": "材料科学基础实训",
+    "desc": "请在项目设置里编写项目介绍。",
+    "category": "材料",
+    "objective": "",
+    "updatedAt": "2026-10-09",
+    "startNodeId": "node-4f83e0b5-4584-42fb-a6a4-b4140be3226d",
+    "nodes": [
+      {
+        "id": "node-4f83e0b5-4584-42fb-a6a4-b4140be3226d",
+        "name": "阶段一：开始实训",
+        "roleName": "实训指导教师",
+        "persona": "专业、耐心，优先追问学生的分析依据；不要直接公布答案。",
+        "context": "",
+        "studentTask": "",
+        "greeting": "你好，欢迎开始实训。",
+        "rubric": "知识掌握、分析依据、风险识别",
+        "keywords": "",
+        "hints": "请结合任务目标补充你的判断依据。",
+        "scriptRules": "",
+        "passScore": "75",
+        "x": 70,
+        "y": 120
+      }
+    ],
+    "edges": []
+  }
+}
           "keywords": "风险,审批",
           "passScore": "75",
           "scriptRules": "风险=>能进一步说明应如何核查和记录危险源吗？"

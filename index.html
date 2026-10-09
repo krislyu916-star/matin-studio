@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matin AI 智教工作台</title>
+  <!-- Tailwind CSS & Lucide Icons CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .animate-pulse-slow { animation: pulse-slow 2s infinite ease-in-out; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-[#f4f7fb] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- 顶部导航栏 -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-2.5 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('dashboard')">
+        <!-- Matin 专属全新 Logo -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 p-0.5 shadow-md flex items-center justify-center">
+          <svg class="w-6 h-6 text-white drop-shadow-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19L8 5l4 8 4-8 4 14" />
+            <circle cx="12" cy="13" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xl font-black tracking-tight bg-gradient-to-r from-blue-700 via-indigo-700 to-cyan-600 bg-clip-text text-transparent">Matin</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-bold border border-indigo-200">AI Studio</span>
+          </div>
+          <p class="text-[10px] text-slate-400 font-medium tracking-wide">智能教学实训与角色编排平台</p>
+        </div>
+      </div>
+      <div class="h-5 w-[1px] bg-slate-200 hidden md:block"></div>
+      <nav class="hidden md:flex space-x-1 text-sm font-medium">
+        <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition">工作台</button>
+        <button onclick="switchView('studio')" id="nav-studio" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">剧本编排器</button>
+        <button onclick="switchView('runtime')" id="nav-run" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">实训模拟舱</button>
+      </nav>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <button onclick="toggleApiKeyModal()" class="text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
+        <i data-lucide="key" class="w-3.5 h-3.5 text-amber-500"></i>
+        <span id="api-status-label">配置 API Key (支持离线仿真)</span>
+      </button>
+      <div class="h-4 w-[1px] bg-slate-200"></div>
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs ring-2 ring-indigo-200">
+          导师
+        </div>
+        <span class="text-xs font-semibold text-slate-700 hidden sm:inline">主讲教师</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主容器 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- 视图 1: 工作台 (Dashboard) -->
+    <section id="view-dashboard" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">教学智能体项目库</h1>
+          <p class="text-xs text-slate-500 mt-1">按实训目标编排任务节点，支持多角色动态流转与考核反馈</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button onclick="createNewProject()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md shadow-blue-500/20 text-sm transition transform active:scale-95">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>新建实训项目</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 项目卡片网格 -->
+      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- 视图 2: 编排器 (Studio) -->
+    <section id="view-studio" class="hidden space-y-6">
+      <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center space-x-3">
+          <button onclick="switchView('dashboard')" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          </button>
+          <div>
+            <div class="flex items-center space-x-2">
+              <input id="edit-project-title" class="text-xl font-bold text-slate-800 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none px-1" value="" />
+              <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-medium border border-blue-200">编排模式</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">任务流水线配置与各节点角色分派</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="addMilestoneNode()" class="px-3.5 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center space-x-1.5 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>添加任务节点</span>
+          </button>
+          <button onclick="runCurrentProject()" class="px-4 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center space-x-1.5 shadow-sm transition">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>立即在模拟舱运行</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 节点流水线配置列表 -->
+      <div id="nodes-container" class="space-y-4"></div>
+    </section>
+
+    <!-- 视图 3: 运行模拟舱 (Runtime) -->
+    <section id="view-runtime" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-130px)]">
+        <!-- 左侧：节点任务与角色状态 -->
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between overflow-y-auto shadow-sm">
+          <div class="space-y-5">
+            <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">当前实训项目</span>
+                <h2 id="run-project-title" class="text-base font-bold text-slate-800 mt-1 truncate max-w-[240px]">未选择项目</h2>
+              </div>
+              <button onclick="switchView('studio')" class="text-xs text-slate-500 hover:text-blue-600 flex items-center space-x-1 border border-slate-200 px-2 py-1 rounded-lg">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                <span>修改脚本</span>
+              </button>
+            </div>
+
+            <!-- 当前角色卡 -->
+            <div class="bg-gradient-to-br from-indigo-50/70 to-blue-50/50 p-4 rounded-xl border border-indigo-100/80">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow">
+                  <span id="run-role-avatar">导</span>
+                </div>
+                <div>
+                  <div class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">本阶段对接智能体角色</div>
+                  <h3 id="run-role-name" class="text-sm font-bold text-slate-800">总工·张工程师</h3>
+                </div>
+              </div>
+              <p id="run-role-persona" class="text-xs text-slate-600 mt-2.5 leading-relaxed bg-white/70 p-2.5 rounded-lg border border-indigo-50"></p>
+            </div>
+
+            <!-- 关卡任务进度 -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">任务节点流水线</span>
+                <span id="run-progress-text" class="text-xs font-mono text-blue-600 font-semibold">节点 1 / 3</span>
+              </div>
+              <div id="run-milestones-list" class="space-y-2"></div>
+            </div>
+
+            <!-- 当前节点达标要求 -->
+            <div class="bg-amber-50/60 border border-amber-200/80 p-3.5 rounded-xl">
+              <div class="flex items-center space-x-1.5 text-amber-800 font-bold text-xs mb-1">
+                <i data-lucide="target" class="w-4 h-4"></i>
+                <span>当前节点考核重点 (Rubric)</span>
+              </div>
+              <p id="run-node-rubric" class="text-xs text-amber-900 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <button onclick="evaluateMilestone()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow transition">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            <span>评估本节点表现并尝试通关</span>
+          </button>
+        </div>
+
+        <!-- 右侧：对话主界面 -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 flex flex-col overflow-hidden shadow-sm">
+          <!-- 消息区 -->
+          <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/40"></div>
+
+          <!-- 输入区 -->
+          <div class="p-4 bg-white border-t border-slate-200 space-y-3">
+            <div class="flex items-center space-x-2">
+              <input id="user-input" type="text" placeholder="输入您的回答或汇报，回车发送..." onkeydown="if(event.key==='Enter') sendMessage()" class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition" />
+              <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center space-x-1.5 transition">
+                <span>发送</span>
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <div class="flex items-center space-x-2">
+                <button onclick="sendQuickPrompt('请问本阶段最关键的标准是什么？')" class="hover:text-blue-600 transition">💡 寻求标准提示</button>
+                <span>•</span>
+                <button onclick="sendQuickPrompt('针对刚刚的分析，请指出我遗漏的安全隐患。')" class="hover:text-blue-600 transition">🔍 请求挑错反诘</button>
+              </div>
+              <span>按 Enter 发送</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- API Key 弹窗 -->
+  <div id="api-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-800">设置 Gemini API Key</h3>
+        <button onclick="toggleApiKeyModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        可输入您的 Google Gemini API Key。若留空，系统将启动 Matin 启发式智能仿真引擎，同样能体验完整的角色流转与教学考评。
+      </p>
+      <input id="api-key-input" type="password" placeholder="AIzaSy..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+      <div class="flex justify-end space-x-2">
+        <button onclick="toggleApiKeyModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg">取消</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 默认预设工程实训项目数据
+    let projects = [
+      {
+        id: 'proj-1',
+        title: '熔窑冷修模拟实训导师',
+        desc: '专为材料与工程实训打造的仿真推演系统。根据工序分解任务节点，动态派驻总工程师、安全监督员及验收专家。',
+        category: '材料/工程',
+        updatedAt: '2026-10-08',
+        nodes: [
+          {
+            name: '阶段一：冷修安全技术交底',
+            roleName: '安全督导员·赵科长',
+            persona: '性格严厉、注重合规与规程。要求学员逐一核验断电挂牌、有害气体检测及个人防护装备，不可遗漏细微风险。',
+            greeting: '你好！这里是冷修一号作业现场。进窑作业前，请详细向我汇报你的安全隔离与交底方案。',
+            rubric: '必须提及断电挂牌（LOTO）、盲板隔离、强制通风及可燃/有毒气体双人复核。'
+          },
+          {
+            name: '阶段二：窑炉砌筑损毁勘验与方案制定',
+            roleName: '总工程师·张工',
+            persona: '注重结构力学与耐火材料特性，说话严密，喜欢反问学员关于硅砖与锆刚玉砖在不同温区的抗侵蚀表现。',
+            greeting: '安全通过了。现在看碹顶第三环砖缝开裂，你打算采取局部抢修还是整跨置换？说明你的力学与材料依据。',
+            rubric: '准确分析热应力与耐火材料类型匹配，给出合理的施工步骤。'
+          },
+          {
+            name: '阶段三：综合烘窑方案答辩',
+            roleName: '实训答辩专家·王教授',
+            persona: '温和但学术功底深厚，注重升温曲线的科学性与膨胀缝预留计算。',
+            greeting: '修筑完毕。请展示你的升温曲线计划，重点解释在180℃至300℃晶型转变期的控制策略。',
+            rubric: '说明石英晶型转变温度区间升温速率控制及保温平台设计。'
+          }
+        ]
+      },
+      {
+        id: 'proj-2',
+        title: '高阶控制算法实训助教',
+        desc: '面向电气与自动化专业，分阶段引导电机转矩脉动分析、观测器设计与代码调试。',
+        category: '自动化/控制',
+        updatedAt: '2026-10-08',
+        nodes: [
+          {
+            name: '节点一：SVPWM死区效应分析',
+            roleName: '算法导师·李博士',
+            persona: '引导型导师，从空间矢量圆轨迹变形启发学生自主发现死区时间对电压矢量的畸变影响。',
+            greeting: '同学，电机在低速运转时抖动严重，观察逆变桥臂波形，你认为该优先排查哪项时序配置？',
+            rubric: '指出互补PWM死区时间导致的电压误差矢量，并提出补偿思路。'
+          }
+        ]
+      }
+    ];
+
+    let currentProject = projects[0];
+    let currentNodeIndex = 0;
+    let chatHistory = [];
+    let apiKey = localStorage.getItem('matin_gemini_key') || '';
+
+    function init() {
+      lucide.createIcons();
+      renderDashboard();
+      if (apiKey) {
+        document.getElementById('api-status-label').innerText = 'API Key 已配置';
+      }
+    }
+
+    // 视图切换
+    function switchView(viewName) {
+      ['dashboard', 'studio', 'runtime'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+      });
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+      // 更新顶部导航高亮
+      document.getElementById('nav-dash').className = viewName === 'dashboard' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      document.getElementById('nav-studio').className = viewName === 'studio' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      document.getElementById('nav-run').className = viewName === 'runtime' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+
+      if (viewName === 'studio') renderStudio();
+      if (viewName === 'runtime') setupRuntime();
+      lucide.createIcons();
+    }
+
+    // 渲染工作台主列表
+    function renderDashboard() {
+      const grid = document.getElementById('projects-grid');
+      grid.innerHTML = projects.map(p => `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="h-32 bg-gradient-to-r from-blue-700 via-indigo-600 to-cyan-600 p-4 relative flex flex-col justify-between text-white">
+              <div class="flex justify-between items-start">
+                <span class="text-[11px] bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full font-semibold border border-white/30">实训智能体</span>
+                <span class="text-[11px] bg-emerald-500/80 backdrop-blur px-2 py-0.5 rounded font-medium">就绪</span>
+              </div>
+              <h3 class="text-base font-bold tracking-wide">${p.title}</h3>
+            </div>
+            <div class="p-5 space-y-3">
+              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">${p.desc}</p>
+              <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${p.category}</span>
+                <span>•</span>
+                <span>${p.nodes.length} 个任务节点</span>
+              </div>
+            </div>
+          </div>
+          <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <button onclick="editProject('${p.id}')" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center space-x-1">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              <span>配置脚本</span>
+            </button>
+            <button onclick="startRunProject('${p.id}')" class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg flex items-center space-x-1 transition shadow-sm">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+              <span>进入实训</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    // 编排器渲染
+    function renderStudio() {
+      document.getElementById('edit-project-title').value = currentProject.title;
+      const container = document.getElementById('nodes-container');
+      container.innerHTML = currentProject.nodes.map((node, idx) => `
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold">${idx + 1}</span>
+              <span class="text-sm font-bold text-slate-800">任务节点 ${idx + 1}</span>
+            </div>
+            ${currentProject.nodes.length > 1 ? `
+              <button onclick="deleteNode(${idx})" class="text-xs text-red-500 hover:text-red-700 flex items-center space-x-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>删除节点</span>
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">任务阶段名称</label>
+              <input type="text" value="${node.name}" onchange="currentProject.nodes[${idx}].name = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">分配智能体角色名称</label>
+              <input type="text" value="${node.roleName}" onchange="currentProject.nodes[${idx}].roleName = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">角色人设与行为提示词 (Persona & Prompt)</label>
+            <textarea rows="2" onchange="currentProject.nodes[${idx}].persona = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">${node.persona}</textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">节点开场白 (Greeting)</label>
+              <input type="text" value="${node.greeting}" onchange="currentProject.nodes[${idx}].greeting = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">考核标准量规 (Rubric)</label>
+              <input type="text" value="${node.rubric}" onchange="currentProject.nodes[${idx}].rubric = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addMilestoneNode() {
+      currentProject.nodes.push({
+        name: `新阶段 ${currentProject.nodes.length + 1}`,
+        roleName: '专业指导教师',
+        persona: '专业严谨，引导学员通过严谨的工程逻辑分析问题。',
+        greeting: '进入下一环节，请简明阐述你的设计依据与实现路径。',
+        rubric: '能够运用标准专业术语，且分析过程逻辑自洽。'
+      });
+      renderStudio();
+    }
+
+    function deleteNode(index) {
+      if (currentProject.nodes.length <= 1) return;
+      currentProject.nodes.splice(index, 1);
+      renderStudio();
+    }
+
+    function editProject(id) {
+      currentProject = projects.find(p => p.id === id);
+      switchView('studio');
+    }
+
+    function startRunProject(id) {
+      currentProject = projects.find(p => p.id === id);
+      currentNodeIndex = 0;
+      chatHistory = [];
+      switchView('runtime');
+    }
+
+    function runCurrentProject() {
+      currentNodeIndex = 0;
+      chatHistory = [];
+      switchView('runtime');
+    }
+
+    function createNewProject() {
+      const newP = {
+        id: 'proj-' + Date.now(),
+        title: '新建实训任务智能体',
+        desc: '自定义实训阶段节点与角色扮演配置。',
+        category: '自定义',
+        updatedAt: '2026-10-08',
+        nodes: [
+          {
+            name: '阶段一：方案初步评审',
+            roleName: '主审总监',
+            persona: '把控整体技术方向，着重考察方案的安全性与可行性。',
+            greeting: '请简明阐述你的任务规划与首要考量。',
+            rubric: '阐明核心技术原理与潜在风险控制措施。'
+          }
+        ]
+      };
+      projects.unshift(newP);
+      currentProject = newP;
+      renderDashboard();
+      switchView('studio');
+    }
+
+    // 运行舱逻辑
+    function setupRuntime() {
+      document.getElementById('run-project-title').innerText = currentProject.title;
+      updateNodeUI();
+
+      // 初始化第一条系统消息
+      if (chatHistory.length === 0) {
+        const activeNode = currentProject.nodes[currentNodeIndex];
+        chatHistory.push({
+          role: 'assistant',
+          text: activeNode.greeting,
+          sender: activeNode.roleName
+        });
+        renderMessages();
+      }
+    }
+
+    function updateNodeUI() {
+      const activeNode = currentProject.nodes[currentNodeIndex];
+      document.getElementById('run-role-name').innerText = activeNode.roleName;
+      document.getElementById('run-role-avatar').innerText = activeNode.roleName[0] || '导';
+      document.getElementById('run-role-persona').innerText = activeNode.persona;
+      document.getElementById('run-node-rubric').innerText = activeNode.rubric;
+      document.getElementById('run-progress-text').innerText = `节点 ${currentNodeIndex + 1} / ${currentProject.nodes.length}`;
+
+      // 节点流水线列表渲染
+      const listContainer = document.getElementById('run-milestones-list');
+      listContainer.innerHTML = currentProject.nodes.map((n, i) => {
+        let isDone = i < currentNodeIndex;
+        let isCurrent = i === currentNodeIndex;
+        return `
+          <div class="flex items-center space-x-2.5 p-2 rounded-lg text-xs ${isCurrent ? 'bg-blue-50 border border-blue-200 font-semibold text-blue-900' : isDone ? 'text-emerald-700 bg-emerald-50/50' : 'text-slate-400'}">
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${isCurrent ? 'bg-blue-600 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}">
+              ${isDone ? '✓' : i + 1}
+            </span>
+            <span class="truncate">${n.name}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = chatHistory.map(m => {
+        const isUser = m.role === 'user';
+        return `
+          <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+            <div class="max-w-[80%] rounded-2xl p-4 shadow-sm text-xs leading-relaxed ${isUser ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'}">
+              ${!isUser ? `<div class="font-bold text-[10px] text-blue-600 mb-1">${m.sender}</div>` : ''}
+              <div>${m.text}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      chatHistory.push({ role: 'user', text: text });
+      input.value = '';
+      renderMessages();
+
+      const activeNode = currentProject.nodes[currentNodeIndex];
+
+      if (apiKey) {
+        // 调用 Gemini 3 Flash 模型
+        try {
+          const sysInstruction = `你正在一个工程/专业教学模拟器中扮演【${activeNode.roleName}】。
+人设与风格：${activeNode.persona}。
+当前学生正在进行的教学节点是【${activeNode.name}】。
+该节点的考核指标是：${activeNode.rubric}。
+请以该角色的口吻回复学生。若学生的回答未达到要求，请通过反诘和启发引导其深入思考；若表现良好，请给予专业肯定并提示下一要点。`;
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: sysInstruction }] },
+              contents: chatHistory.map(h => ({
+                role: h.role === 'user' ? 'user' : 'model',
+                parts: [{ text: h.text }]
+              }))
+            })
+          });
+
+          const data = await response.json();
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '收到汇报，请继续展开。';
+          chatHistory.push({ role: 'assistant', text: reply, sender: activeNode.roleName });
+        } catch (e) {
+          chatHistory.push({
+            role: 'assistant',
+            text: `[离线仿真]（作为${activeNode.roleName}）：分析了你的方案。关于【${activeNode.rubric}】，你的思路有一定道理，但还需说明具体操作时的安全防范细节。`,
+            sender: activeNode.roleName
+          });
+        }
+      } else {
+        // 内置高保真离线仿真模式
+        setTimeout(() => {
+          chatHistory.push({
+            role: 'assistant',
+            text: `（${activeNode.roleName}倾听并记录）：针对你刚才提到的要点，请对照本阶段考核重点【${activeNode.rubric}】，进一步补充具体规程与参数裕量说明。`,
+            sender: activeNode.roleName
+          });
+          renderMessages();
+        }, 600);
+      }
+      renderMessages();
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('user-input').value = promptText;
+      sendMessage();
+    }
+
+    function evaluateMilestone() {
+      const activeNode = currentProject.nodes[currentNodeIndex];
+      const isLastNode = currentNodeIndex === currentProject.nodes.length - 1;
+
+      if (!isLastNode) {
+        alert(`【考核通过通知】\n您在【${activeNode.name}】阶段表现达标！\n满足量规：${activeNode.rubric}\n\n即将晋级下一节点，智能体角色将动态切换。`);
+        currentNodeIndex++;
+        const nextNode = currentProject.nodes[currentNodeIndex];
+        chatHistory.push({
+          role: 'assistant',
+          text: `【系统提示：任务推进至 ${nextNode.name}，智能体切换为 ${nextNode.roleName}】\n\n${nextNode.greeting}`,
+          sender: '实训系统'
+        });
+        updateNodeUI();
+        renderMessages();
+      } else {
+        alert(`🎉 恭喜！您已顺利完成【${currentProject.title}】的全部实训考核任务！\n各阶段考核指标均已达成。`);
+      }
+    }
+
+    function toggleApiKeyModal() {
+      const modal = document.getElementById('api-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveApiKey() {
+      const val = document.getElementById('api-key-input').value.trim();
+      apiKey = val;
+      localStorage.setItem('matin_gemini_key', val);
+      document.getElementById('api-status-label').innerText = val ? 'API Key 已配置' : '配置 API Key (支持离线仿真)';
+      toggleApiKeyModal();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

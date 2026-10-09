@@ -1,727 +1,691 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Matin AI 智教工作台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Matin AI Studio - 可自行编写实训剧本的本地教学模拟工作台" />
+  <title>Matin AI Studio V3 · 可视化剧本编排</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f8fafc; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    :root { color-scheme: light; --blue:#365de7; --blue-dark:#264bc9; --ink:#1e2b45; --muted:#74839c; --line:#e4eaf3; --bg:#f3f6fb; --white:#fff; --green:#07875e; --danger:#d63e56; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft Yahei","PingFang SC",sans-serif; font-size:14px; }
+    button,input,textarea,select { font:inherit; } button { cursor:pointer; } button:disabled { opacity:.55; cursor:not-allowed; }
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:3px solid #b8caff; outline-offset:2px; }
+    .hidden { display:none!important; } .topbar { position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between; padding:14px max(24px,calc((100vw - 1420px)/2)); background:#fff; border-bottom:1px solid var(--line); gap:18px; box-shadow:0 1px 6px #1e3a8a08; }
+    .brand-block,.nav,.topright,.row,.actions { display:flex; align-items:center; } .brand-block { gap:12px; white-space:nowrap; } .brand-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:13px; background:linear-gradient(135deg,#3657d7,#42a8e4); box-shadow:0 3px 7px #325bdd33; color:#fff; font-size:24px; font-weight:900; }
+    .brand-title { display:flex; align-items:center; gap:8px; font-size:22px; color:#3556d6; font-weight:850; line-height:1; } .brand-chip { border:1px solid #cfd8ff; color:#4055ba; border-radius:5px; background:#eef0ff; font-size:11px; padding:3px 6px; }
+    .brand-sub { font-size:11px; color:#8a98af; margin-top:6px; } .nav { gap:4px; margin-left:18px; } .nav button { border:0; border-radius:9px; color:#5e6d85; background:transparent; padding:11px 15px; white-space:nowrap; } .nav button.active { background:#eef4ff; color:var(--blue); font-weight:750; }
+    .topright { gap:12px; margin-left:auto; } .topnote { color:#7890ac; font-size:11px; } .container { max-width:1420px; padding:30px 24px 90px; margin:0 auto; }
+    .panel,.project-card,.stage-list,.editor,.runtime-left,.chat-shell { background:white; border:1px solid var(--line); border-radius:18px; box-shadow:0 2px 5px #18325c06; }
+    .page-title { padding:28px; display:flex; justify-content:space-between; align-items:center; gap:20px; } h1,h2,h3,p { margin:0; } h1 { font-size:26px; letter-spacing:-.5px; } h2 { font-size:20px; } h3 { font-size:16px; } .muted { color:var(--muted); } .subtext { margin-top:8px; color:var(--muted); font-size:13px; line-height:1.7; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line); border-radius:10px; padding:10px 14px; background:#fff; color:#465978; font-weight:650; font-size:13px; white-space:nowrap; min-height:38px; }
+    .btn:hover { background:#f6f8fd; } .btn.primary { color:white; background:var(--blue); border-color:var(--blue); box-shadow:0 3px 7px #3159e62b; } .btn.primary:hover { background:var(--blue-dark); } .btn.danger { color:var(--danger); border-color:#ffe1e4; } .btn.soft { color:var(--blue); background:#f0f4ff; border-color:#dbe5ff; } .btn.tiny { font-size:12px; padding:7px 9px; min-height:30px; } .btn.flat { border:0; box-shadow:none; padding:7px 9px; }
+    .actions { gap:9px; flex-wrap:wrap; } .project-grid { margin-top:28px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; } .project-card { overflow:hidden; display:flex; flex-direction:column; min-height:290px; }
+    .project-head { height:137px; padding:18px 20px; display:flex; flex-direction:column; justify-content:space-between; background:linear-gradient(116deg,#3155d4 0%,#4544d6 43%,#4397b3 100%); color:#fff; }
+    .project-top { display:flex; justify-content:space-between; align-items:center; } .project-pill { padding:5px 11px; font-size:11px; border:1px solid #ffffff55; background:#ffffff30; border-radius:20px; } .status { color:#fff; background:#48b9a3aa; padding:5px 9px; border-radius:6px; font-size:11px; }
+    .project-body { padding:20px; flex:1; } .project-body p { color:#61708a; font-size:13px; line-height:1.7; min-height:47px; } .project-foot { display:flex; justify-content:space-between; gap:8px; background:#f8fafd; border-top:1px solid #eef2f8; padding:13px 16px; } .meta { font-size:12px; color:#8190a8; margin-top:12px; } .badge { background:#f1f4fa; color:#64748c; border-radius:5px; padding:4px 7px; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:19px 22px; } .toolbar .left { display:flex; align-items:center; gap:12px; } .small-note { font-size:12px; color:var(--muted); margin-top:6px; } .editor-grid { margin-top:20px; display:grid; grid-template-columns:225px minmax(390px,1fr) 350px; gap:14px; align-items:start; }
+    .stage-list { padding:18px; position:sticky; top:94px; } .section-caption { font-size:12px; font-weight:750; color:#60708a; margin-bottom:12px; } .node-item { border:1px solid #edf1f8; border-radius:12px; padding:13px; margin-bottom:10px; background:#fff; } .node-item.selected { background:#edf3ff; border-color:#a9bfff; }
+    .node-open { width:100%; display:flex; align-items:center; gap:10px; text-align:left; color:#425472; background:none; border:0; font-weight:700; padding:0; } .node-num { width:26px; height:26px; flex:0 0 26px; display:grid; place-items:center; border-radius:50%; background:#e7ebf5; color:#60748e; font-size:12px; } .selected .node-num { background:var(--blue); color:#fff; } .node-name { overflow-wrap:anywhere; min-width:0; }
+    .node-tools { display:flex; gap:5px; margin-top:11px; justify-content:flex-end; flex-wrap:wrap; } .node-tools button { font-size:11px; padding:5px 7px; background:white; border:1px solid #e0e7f2; color:#6e7e98; border-radius:6px; }
+    .editor { padding:23px 25px; } .group { margin-bottom:24px; padding-bottom:22px; border-bottom:1px solid #eff2f8; } .group:last-child { border:0; padding:0; margin:0; } .group-title { display:flex; align-items:center; gap:8px; margin-bottom:15px; color:#223659; font-weight:800; } .dot { background:#edf2ff; color:var(--blue); border-radius:8px; padding:5px 8px; font-size:12px; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; } .field { display:flex; flex-direction:column; gap:7px; margin-bottom:13px; min-width:0; } .field label { font-size:12px; font-weight:700; color:#50627c; } .field input,.field textarea,.field select { width:100%; border:1px solid #dce5f1; background:#fff; border-radius:9px; color:#24364e; padding:10px 12px; font-size:13px; line-height:1.55; } .field textarea { resize:vertical; min-height:65px; } .field input:focus,.field textarea:focus { border-color:#91abfc; outline:none; box-shadow:0 0 0 3px #e4edff; }
+    .hint { font-size:11px; line-height:1.6; color:#8492a8; margin-top:-2px; } .notice { padding:12px 14px; border:1px solid #dfebff; border-radius:10px; background:#f5f8ff; color:#526d9a; font-size:12px; line-height:1.65; }
+    details { padding:12px; background:#f7f9fc; border:1px solid #e8edf6; border-radius:10px; } summary { cursor:pointer; font-weight:650; color:#486387; } pre { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; color:#485c77; line-height:1.7; }
+    .runtime-layout { display:grid; grid-template-columns:minmax(270px,365px) minmax(0,1fr); gap:18px; height:min(770px,calc(100vh - 135px)); min-height:535px; } .runtime-left { padding:21px; display:flex; flex-direction:column; overflow:auto; } .runtime-left .slot { padding:13px 0; border-bottom:1px solid #eff2f8; } .runtime-left .slot:last-of-type { border:0; }
+    .role-box { background:linear-gradient(125deg,#f0f1ff,#edf7ff); border:1px solid #dde6ff; padding:16px; border-radius:14px; } .stage-progress { display:flex; align-items:flex-start; gap:9px; margin:8px 0; font-size:12px; color:#70829e; padding:8px 10px; border-radius:8px; } .stage-progress.current { background:#eaf2ff; color:#3158b5; font-weight:750; } .stage-progress.done { color:var(--green); } .runtime-left .foot { margin-top:auto; padding-top:12px; }
+    .chat-shell { overflow:hidden; display:flex; flex-direction:column; min-height:0; } .chat-top { padding:14px 20px; border-bottom:1px solid #ebf0f7; display:flex; justify-content:space-between; align-items:center; } .chat-messages { background:#f8fafd; padding:20px; overflow-y:auto; flex:1; } .bubble-wrap { display:flex; margin:0 0 17px; } .bubble-wrap.me { justify-content:flex-end; } .bubble { max-width:82%; border:1px solid #e4eaf5; border-radius:15px 15px 15px 3px; padding:12px 14px; background:#fff; color:#455774; font-size:13px; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; } .me .bubble { background:var(--blue); border-color:var(--blue); color:#fff; border-radius:15px 15px 3px 15px; } .sender { color:#3560d7; font-weight:800; font-size:11px; margin-bottom:6px; } .chat-compose { background:#fff; border-top:1px solid #ebf0f7; padding:15px; } .compose-line { display:flex; align-items:flex-end; gap:8px; } .compose-line textarea { flex:1; border:1px solid #dce5f1; padding:11px 13px; border-radius:11px; resize:vertical; min-height:44px; max-height:130px; outline:none; line-height:1.5; font-size:13px; } .compose-line textarea:focus { border-color:#93acfc; }
+    .modal-layer { position:fixed; inset:0; z-index:100; background:#192641a8; display:flex; align-items:center; justify-content:center; padding:22px; } .modal { width:min(520px,100%); background:#fff; padding:25px; border-radius:20px; box-shadow:0 20px 70px #101b3c4a; max-height:95vh; overflow:auto; } .modal .form-grid { grid-template-columns:1fr; } .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    #toast { position:fixed; right:24px; bottom:22px; background:#234064; color:white; border-radius:10px; padding:12px 16px; box-shadow:0 8px 28px #1d335b40; font-size:12px; z-index:150; max-width:min(400px,calc(100vw - 48px)); } .footer { text-align:center; color:#9aa8bb; margin-top:23px; font-size:11px; line-height:1.7; }
+    @media (max-width:1100px) { .project-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .topnote { display:none; } .nav { margin-left:4px; } }
+    @media (max-width:760px) { .topbar { flex-wrap:wrap; padding:10px 14px; } .nav { order:3; width:100%; justify-content:space-around; margin:0; } .nav button { padding:9px 10px; } .container { padding:18px 12px 55px; } .page-title { align-items:flex-start; flex-direction:column; padding:20px; } .project-grid { grid-template-columns:1fr; gap:14px; margin-top:18px; } .editor-grid { grid-template-columns:1fr; } .stage-list { position:static; } .form-grid { grid-template-columns:1fr; gap:0; } .editor { padding:18px; } .runtime-layout { display:flex; flex-direction:column; height:auto; } .runtime-left { max-height:none; } .chat-shell { min-height:480px; height:70vh; } .topright .btn { font-size:11px; padding:7px 9px; } .brand-sub { display:none; } h1 { font-size:23px; } }
+    /* V3 visually-connected graph and inspector */
+    .flow-panel {min-width:0;overflow:hidden;border-radius:16px;}
+    .flow-toolbar {padding:16px 17px 11px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #edf1f8;}
+    .flow-toolbar strong {font-size:14px;color:#29426b;}
+    .flow-viewport {height:650px;overflow:auto;position:relative; background-color:#f8fbff;background-image: radial-gradient(#cedcf0 1.1px,transparent 1.1px);background-size:20px 20px;cursor:grab;}
+    .flow-viewport:focus-visible {outline:2px solid #acc3ff;outline-offset:-2px;}
+    .flow-world {position:relative;min-width:1050px;min-height:650px;}
+    .flow-lines {position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none;}
+    .flow-lines .edge-hit {fill:none;stroke:transparent;stroke-width:19;pointer-events:stroke;cursor:pointer;}
+    .flow-lines .edge-line {fill:none;stroke:#8b9cbe;stroke-width:2.6;pointer-events:none;}
+    .flow-lines .edge-line.active {stroke:#3564ee;stroke-width:3.7;}
+    .flow-lines .edge-label {fill:#fff;stroke:#d9e4f5;rx:8;pointer-events:all;cursor:pointer;}
+    .flow-lines .edge-text {font-size:11px;fill:#425c83;pointer-events:none;}
+    .flow-node {position:absolute;width:236px;height:145px;border-radius:15px;background:white;border:2px solid #dce5f6;box-shadow:0 6px 18px #294d8512;display:flex;flex-direction:column;touch-action:none;user-select:none;cursor:grab;}
+    .flow-node.selected {border-color:#476df0;box-shadow:0 9px 24px #4168df33;}
+    .flow-node.origin {border-top:5px solid #0a9678;}
+    .flow-node.moving {z-index:5;cursor:grabbing;}
+    .flow-node-header {padding:10px 14px 5px;display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:#7a8aa7;}
+    .flow-node-name {font-weight:800;font-size:13px;padding:2px 14px;overflow-wrap:anywhere;max-height:39px;overflow:hidden;line-height:1.4;}
+    .flow-node-role {padding:2px 14px;font-size:11px;color:#6b7d9a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .flow-node-foot {margin-top:auto;border-top:1px solid #eff3f9;padding:8px 14px;color:#8b9ab2;font-size:10px;}
+    .port {border:3px solid #fff;background:#5782e8;box-shadow:0 0 0 1px #c3d3f8;position:absolute;top:61px;width:20px;height:20px;border-radius:50%;padding:0;z-index:6;}
+    .port:hover,.port.connecting {background:#13a287;box-shadow:0 0 0 4px #bbf7dc;}
+    .port.input {left:-11px;}.port.output {right:-11px;}
+    .flow-guide {background:#ecf4ff;color:#476389;font-size:12px;padding:8px 15px;min-height:35px;line-height:1.55;}
+    .flow-guide.connecting {background:#ebfff2;color:#137954;}
+    .flow-footer {padding:11px 14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#8191a8;font-size:11px;border-top:1px solid #edf1f8;}
+    .inspector {min-width:0;padding:18px 18px 22px;max-height:770px;overflow:auto;position:sticky;top:96px;}
+    .inspector .group-title {font-size:13px;}.inspector .form-grid {grid-template-columns:1fr;gap:0;}.inspector .field textarea{font-size:12px;}
+    .inspector .group {margin-bottom:16px;padding-bottom:14px;}
+    .run-branches {display:flex;flex-direction:column;gap:7px;}
+    .branch-choice {text-align:left;justify-content:flex-start;width:100%;white-space:normal;line-height:1.5;}
+    .branch-choice.suggested {border-color:#78b6a7;background:#edfbf5;color:#15785f;}
+    .branch-choice .condition {display:block;font-size:10px;font-weight:400;color:#7688a1;}
+    .flow-mini {color:#8492aa;font-size:11px;line-height:1.6;}
+    @media (max-width:1340px){.editor-grid {grid-template-columns:195px minmax(340px,1fr) 305px;gap:11px;} .inspector{padding:15px;} .stage-list{padding:14px;}}
+    @media (max-width:1040px){.editor-grid {grid-template-columns:210px minmax(0,1fr);} .inspector{grid-column:1/-1;position:static;max-height:none;} .inspector .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}.flow-viewport{height:560px;}}
+    @media (max-width:760px){.editor-grid{grid-template-columns:1fr;} .flow-viewport{height:470px;} .inspector{grid-column:auto;} .inspector .form-grid{grid-template-columns:1fr;}}
+
   </style>
 </head>
-<body class="bg-[#f4f7fb] text-slate-800 antialiased min-h-screen flex flex-col">
-
-  <!-- 顶部导航栏 -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-6 py-2.5 flex items-center justify-between shadow-sm">
-    <div class="flex items-center space-x-6">
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('dashboard')">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 p-0.5 shadow-md flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19L8 5l4 8 4-8 4 14" />
-            <circle cx="12" cy="13" r="1.5" fill="currentColor" />
-          </svg>
-        </div>
-        <div>
-          <div class="flex items-center space-x-1.5">
-            <span class="text-xl font-black tracking-tight bg-gradient-to-r from-blue-700 via-indigo-700 to-cyan-600 bg-clip-text text-transparent">Matin</span>
-            <span class="text-xs bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-bold border border-indigo-200">AI Studio</span>
-          </div>
-          <p class="text-[10px] text-slate-400 font-medium tracking-wide">智能教学实训与角色编排平台</p>
-        </div>
-      </div>
-      <div class="h-5 w-[1px] bg-slate-200 hidden md:block"></div>
-      <nav class="hidden md:flex space-x-1 text-sm font-medium">
-        <button onclick="switchView('dashboard')" id="nav-dash" class="px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition">工作台</button>
-        <button onclick="switchView('studio')" id="nav-studio" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">剧本编排器</button>
-        <button onclick="switchView('runtime')" id="nav-run" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">实训模拟舱</button>
-      </nav>
-    </div>
-
-    <div class="flex items-center space-x-4">
-      <button onclick="toggleApiKeyModal()" class="text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
-        <i data-lucide="settings-2" class="w-3.5 h-3.5 text-blue-500"></i>
-        <span id="api-status-label">AI模型与密钥设置</span>
-      </button>
-      <div class="h-4 w-[1px] bg-slate-200"></div>
-      <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs ring-2 ring-indigo-200">
-          导师
-        </div>
-        <span class="text-xs font-semibold text-slate-700 hidden sm:inline">主讲教师</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- 主容器 -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
-
-    <!-- 视图 1: 工作台 -->
-    <section id="view-dashboard" class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-        <div>
-          <h1 class="text-2xl font-bold text-slate-800">教学智能体项目库</h1>
-          <p class="text-xs text-slate-500 mt-1">按实训目标编排任务节点，支持多角色动态流转与考核反馈</p>
-        </div>
-        <div class="flex items-center space-x-3">
-          <button onclick="createNewProject()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-md shadow-blue-500/20 text-sm transition">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span>新建实训项目</span>
-          </button>
-        </div>
-      </div>
-      <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-    </section>
-
-    <!-- 视图 2: 编排器 -->
-    <section id="view-studio" class="hidden space-y-6">
-      <div class="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex items-center space-x-3">
-          <button onclick="switchView('dashboard')" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition">
-            <i data-lucide="arrow-left" class="w-5 h-5"></i>
-          </button>
-          <div>
-            <div class="flex items-center space-x-2">
-              <input id="edit-project-title" class="text-xl font-bold text-slate-800 border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none px-1" value="" />
-              <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-medium border border-blue-200">编排模式</span>
-            </div>
-            <p class="text-xs text-slate-400 mt-0.5">任务流水线配置与各节点角色分派</p>
-          </div>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="addMilestoneNode()" class="px-3.5 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg flex items-center space-x-1.5 transition">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>添加任务节点</span>
-          </button>
-          <button onclick="runCurrentProject()" class="px-4 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg flex items-center space-x-1.5 shadow-sm transition">
-            <i data-lucide="play" class="w-4 h-4"></i>
-            <span>进入模拟舱</span>
-          </button>
-        </div>
-      </div>
-      <div id="nodes-container" class="space-y-4"></div>
-    </section>
-
-    <!-- 视图 3: 运行模拟舱 -->
-    <section id="view-runtime" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-130px)]">
-        <!-- 左侧：节点任务与角色状态 -->
-        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between overflow-y-auto shadow-sm">
-          <div class="space-y-4">
-            <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">当前实训项目</span>
-                <h2 id="run-project-title" class="text-base font-bold text-slate-800 mt-1 truncate max-w-[240px]">未选择项目</h2>
-              </div>
-              <button onclick="switchView('studio')" class="text-xs text-slate-500 hover:text-blue-600 flex items-center space-x-1 border border-slate-200 px-2 py-1 rounded-lg">
-                <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
-                <span>修改脚本</span>
-              </button>
-            </div>
-
-            <!-- 当前角色卡 -->
-            <div class="bg-gradient-to-br from-indigo-50/70 to-blue-50/50 p-4 rounded-xl border border-indigo-100">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow">
-                  <span id="run-role-avatar">导</span>
-                </div>
-                <div>
-                  <div class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider">本阶段对接智能体角色</div>
-                  <h3 id="run-role-name" class="text-sm font-bold text-slate-800">总工·张工程师</h3>
-                </div>
-              </div>
-              <p id="run-role-persona" class="text-xs text-slate-600 mt-2.5 leading-relaxed bg-white/80 p-2.5 rounded-lg border border-indigo-50"></p>
-            </div>
-
-            <!-- 关卡任务进度 -->
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-700">任务节点流水线</span>
-                <span id="run-progress-text" class="text-xs font-mono text-blue-600 font-semibold">节点 1 / 3</span>
-              </div>
-              <div id="run-milestones-list" class="space-y-2"></div>
-            </div>
-
-            <!-- 当前节点达标要求 -->
-            <div class="bg-amber-50/70 border border-amber-200/80 p-3.5 rounded-xl">
-              <div class="flex items-center space-x-1.5 text-amber-800 font-bold text-xs mb-1">
-                <i data-lucide="target" class="w-4 h-4"></i>
-                <span>当前节点考核重点 (Rubric)</span>
-              </div>
-              <p id="run-node-rubric" class="text-xs text-amber-900 leading-relaxed font-medium"></p>
-            </div>
-          </div>
-
-          <button onclick="evaluateMilestone(true)" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow transition">
-            <i data-lucide="check-circle" class="w-4 h-4"></i>
-            <span>强制评估本节点并进入下一阶段</span>
-          </button>
-        </div>
-
-        <!-- 右侧：对话主界面 -->
-        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 flex flex-col overflow-hidden shadow-sm">
-          <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50"></div>
-
-          <div class="p-4 bg-white border-t border-slate-200 space-y-3">
-            <div class="flex items-center space-x-2">
-              <input id="user-input" type="text" placeholder="输入您的汇报或回答，回车发送..." onkeydown="if(event.key==='Enter') sendMessage()" class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition" />
-              <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center space-x-1.5 transition">
-                <span>发送</span>
-                <i data-lucide="send" class="w-4 h-4"></i>
-              </button>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400">
-              <div class="flex items-center space-x-3">
-                <button onclick="sendQuickPrompt('请告诉我本阶段必须包含的关键要素。')" class="hover:text-blue-600 transition">💡 考核点提示</button>
-                <span>•</span>
-                <button onclick="sendQuickPrompt('必须提及断电挂牌（LOTO）、盲板隔离、强制通风及可燃/有毒气体双人复核。')" class="text-blue-600 font-medium hover:underline">⚡ 快捷填入标准答案并通关</button>
-              </div>
-              <span id="current-engine-tag" class="text-slate-400">当前模式：内置智能仿真</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- 模型设置弹窗（支持多厂商选择） -->
-  <div id="api-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-800">AI 模型与密钥设置</h3>
-        <button onclick="toggleApiKeyModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      <p class="text-xs text-slate-500 leading-relaxed">
-        默认采用内置仿真引擎（完全免配置、开箱即用）。若有自己的大模型 API Key，可自主切换连接真实的 AI 接口。
-      </p>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">选择模型服务商</label>
-          <select id="provider-select" onchange="handleProviderChange()" class="w-full border border-slate-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
-            <option value="offline">内置离线仿真模式（推荐：免配置、免Key）</option>
-            <option value="deepseek">DeepSeek (深度求索 - 推荐国内使用)</option>
-            <option value="qwen">阿里通义千问 (DashScope)</option>
-            <option value="zhipu">智谱清言 (GLM-4)</option>
-            <option value="kimi">月之暗面 (Moonshot / Kimi)</option>
-            <option value="gemini">Google Gemini (Gemini 2.5 Flash)</option>
-            <option value="custom">自定义 OpenAI 兼容接口</option>
-          </select>
-        </div>
-
-        <div id="key-input-container" class="space-y-2 hidden">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">API Key 密钥</label>
-            <input id="api-key-input" type="password" placeholder="sk-..." class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
-          </div>
-          <div id="custom-url-container" class="hidden">
-            <label class="block font-semibold text-slate-700 mb-1">自定义接口 Base URL</label>
-            <input id="custom-url-input" type="text" placeholder="https://api.your-domain.com/v1" class="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
-          </div>
-        </div>
-      </div>
-
-      <div class="flex justify-end space-x-2 pt-2">
-        <button onclick="toggleApiKeyModal()" class="px-4 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-lg">取消</button>
-        <button onclick="saveApiConfig()" class="px-4 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg">保存配置</button>
-      </div>
-    </div>
+<body>
+<header class="topbar">
+  <div class="brand-block">
+    <div class="brand-icon" aria-hidden="true">M</div>
+    <div><div class="brand-title">Matin <span class="brand-chip">AI Studio</span></div><div class="brand-sub">智能教学实训与角色编排平台</div></div>
   </div>
+  <nav class="nav" aria-label="主要导航">
+    <button type="button" data-nav="dashboard" class="active">工作台</button>
+    <button type="button" data-nav="studio">剧本编辑器</button>
+    <button type="button" data-nav="runtime">实训模拟舱</button>
+  </nav>
+  <div class="topright"><span class="topnote" id="save-status">本机浏览器保存</span><button class="btn" id="settings-open" type="button">⚙ AI 模型设置</button></div>
+</header>
+<main class="container">
+  <section id="view-dashboard">
+    <div class="page-title panel">
+      <div><h1>教学智能体项目库</h1><p class="subtext">自己编写实训剧本，配置任务阶段、角色对话与考核点；支持本地保存和 JSON 备份。</p></div>
+      <div class="actions"><button type="button" class="btn" id="import-button">⇧ 导入剧本</button><button type="button" class="btn" id="export-all-button">⇩ 全部备份</button><button type="button" class="btn primary" id="new-project-button">＋ 新建实训项目</button></div>
+    </div>
+    <div class="project-grid" id="projects-grid"></div>
+    <p class="footer">当前为纯前端演示版。不同浏览器、不同设备之间不会自动同步，建议及时导出备份。</p>
+  </section>
 
-  <script>
-    let projects = [
-      {
-        id: 'proj-1',
-        title: '熔窑冷修模拟实训导师',
-        desc: '专为材料与工程实训打造的仿真推演系统。根据工序分解任务节点，动态派驻总工程师、安全监督员及验收专家。',
-        category: '材料/工程',
-        updatedAt: '2026-10-08',
-        nodes: [
-          {
-            name: '阶段一：冷修安全技术交底',
-            roleName: '安全督导员·赵科长',
-            persona: '性格严谨负责。要求学员逐一核验断电挂牌、有害气体检测及个人防护装备。',
-            greeting: '你好！这里是冷修一号作业现场。进窑作业前，请详细向我汇报你的安全隔离与交底方案。',
-            rubric: '断电挂牌（LOTO）、盲板隔离、强制通风及可燃/有毒气体双人复核'
-          },
-          {
-            name: '阶段二：窑炉砌筑损毁勘验与方案制定',
-            roleName: '总工程师·张工',
-            persona: '注重结构力学与耐火材料特性，询问碹顶砖缝开裂的修复材料与施工工序。',
-            greeting: '安全交底合格！现在观察到碹顶第三环砖缝开裂，你打算采取局部抢修还是整跨置换？说明你的材料依据。',
-            rubric: '热应力分析、硅砖与锆刚玉砖匹配、留置膨胀缝'
-          },
-          {
-            name: '阶段三：综合烘窑方案答辩',
-            roleName: '实训答辩专家·王教授',
-            persona: '学术功底深厚，注重升温曲线的科学性与膨胀控制。',
-            greeting: '修筑已就绪。请展示你的烘窑升温曲线，重点解释石英晶型转变期的控制策略。',
-            rubric: '180℃至300℃晶型转变期升温速率与恒温保温'
-          }
-        ]
-      },
-      {
-        id: 'proj-2',
-        title: '高阶控制算法实训助教',
-        desc: '面向电气与自动化专业，分阶段引导电机转矩脉动分析与调试。',
-        category: '自动化/控制',
-        updatedAt: '2026-10-08',
-        nodes: [
-          {
-            name: '节点一：SVPWM死区效应分析',
-            roleName: '算法导师·李博士',
-            persona: '引导型导师，考察死区时间对电压矢量的畸变影响。',
-            greeting: '同学，电机在低速运转时抖动严重，观察逆变桥臂波形，你认为该优先排查哪项时序配置？',
-            rubric: '互补PWM死区时间与电压误差补偿'
-          }
-        ]
+  <section id="view-studio" class="hidden">
+    <div class="panel toolbar">
+      <div class="left"><button type="button" class="btn flat" id="editor-back" aria-label="返回项目库">← 返回</button><div><h2 id="studio-heading">剧本编辑器</h2><p class="small-note">亲自编写剧本 · 自动保存至本机浏览器</p></div></div>
+      <div class="actions"><button type="button" class="btn" id="export-project-button">⇩ 导出剧本</button><button type="button" class="btn" id="save-project-button">✓ 保存</button><button type="button" class="btn primary" id="preview-project-button">▷ 预览实训</button></div>
+    </div>
+    <div class="editor-grid">
+      <aside class="stage-list">
+        <div class="section-caption">项目与任务阶段</div>
+        <button type="button" class="btn soft" id="editor-project-settings" style="width:100%;margin-bottom:14px">⚙ 编辑项目基本信息</button>
+        <div id="stage-items"></div>
+        <button type="button" class="btn soft" id="add-node-button" style="width:100%">＋ 添加一个任务节点</button>
+        <p class="hint" style="margin-top:14px">单击节点编辑内容，点击画布上的连接点建立分支。列表顺序不决定实训执行顺序。</p>
+      </aside>
+      <section class="flow-panel panel" aria-label="任务流程画布">
+        <div class="flow-toolbar"><div><strong>◎ 可视化任务流程</strong><p class="hint">拖动节点排版 · 从右侧输出点连接到下一节点左侧输入点</p></div><div class="actions"><button class="btn tiny" id="flow-zoom-out" title="缩小">－</button><button class="btn tiny" id="flow-zoom-label" title="恢复到 100%">100%</button><button class="btn tiny" id="flow-zoom-in" title="放大">＋</button><button class="btn tiny" id="flow-zoom-fit">适应</button><button class="btn tiny" id="flow-validate">✓ 检查流程</button><button class="btn tiny" id="flow-arrange">▦ 自动排列</button><button class="btn tiny" id="flow-cancel-link">取消连线</button></div></div>
+        <div class="flow-guide" id="flow-guide" aria-live="polite">点选一个节点查看并编写右侧剧本</div>
+        <div class="flow-viewport" id="flow-viewport" tabindex="0" aria-label="可滚动的任务流程画布"><div class="flow-world" id="flow-world"><svg class="flow-lines" id="flow-lines" aria-label="任务连接线"></svg><div id="flow-nodes"></div></div></div>
+        <div class="flow-footer"><span id="flow-stats"></span><span>分支由学生回答关键词和教师确认共同决定</span></div>
+      </section>
+      <div class="editor inspector" id="editor-fields"></div>
+    </div>
+  </section>
+
+  <section id="view-runtime" class="hidden">
+    <div class="runtime-layout">
+      <aside class="runtime-left">
+        <div class="slot"><div class="section-caption">当前实训项目</div><h3 id="run-project-title">未选择项目</h3><p class="small-note" id="run-stage-caption"></p></div>
+        <div class="slot"><div class="role-box"><span class="section-caption">当前智能体角色</span><h3 id="run-role-name" style="margin-top:8px"></h3><p class="subtext" id="run-role-persona"></p></div></div>
+        <div class="slot"><div class="section-caption">已访问的任务节点</div><div id="run-stages"></div></div><div class="slot"><div class="section-caption">下一阶段分支（教师确认）</div><div id="run-branches" class="run-branches"></div></div>
+        <div class="slot"><div class="section-caption">本阶段任务</div><p class="subtext" id="run-student-task"></p></div>
+        <div class="foot"><p class="notice">这是教师本地演示，不具备学生登录、权限隔离或正式考试判分能力。</p><button type="button" class="btn primary" id="teacher-next-button" style="width:100%;margin-top:12px">教师演示：确认通过本节点 →</button><div class="actions" style="margin-top:10px"><button type="button" class="btn tiny" id="restart-button">↻ 重新预览</button><button type="button" class="btn tiny" id="transcript-button">⇩ 导出对话</button></div></div>
+      </aside>
+      <section class="chat-shell" aria-label="实训对话区域">
+        <div class="chat-top"><div><strong>实训模拟舱</strong><p class="small-note" id="runtime-model-name">离线剧本演示</p></div><button type="button" class="btn tiny" id="runtime-to-editor">返回编辑</button></div>
+        <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+        <form id="chat-form" class="chat-compose"><div class="compose-line"><textarea id="user-input" aria-label="输入对话" placeholder="输入你的汇报或回答（Enter 发送，Shift+Enter 换行）" rows="2"></textarea><button class="btn primary" id="send-button" type="submit">发送 ↗</button></div><p class="small-note">离线模式根据你编写的“触发词 → 回复”输出预设台词，不会自动判定合格。</p></form>
+      </section>
+    </div>
+  </section>
+</main>
+
+<div id="settings-modal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="model-heading">
+  <div class="modal"><div class="modal-head"><h2 id="model-heading">AI 模型与接口</h2><button type="button" class="btn tiny" id="settings-close">✕ 关闭</button></div>
+    <p class="notice" style="margin-bottom:18px">正式给学生使用时，请把模型调用放到后端。GitHub Pages 上的前端代码无法安全保管教师 API Key。这里仅供个人设备临时测试，密钥不会写入本地存储，刷新页面后需重新输入。</p>
+    <div class="field"><label for="provider-select">选择服务商</label><select id="provider-select"><option value="offline">离线 · 按自定义剧本规则回复（无需 Key）</option><option value="deepseek">DeepSeek</option><option value="qwen">阿里云百炼 / 通义千问</option><option value="zhipu">智谱 GLM</option><option value="kimi">Moonshot / Kimi</option><option value="gemini">Google Gemini</option><option value="custom">自定义 OpenAI 兼容接口</option></select></div>
+    <div id="api-extra" class="hidden"><div class="field"><label for="api-key-input">临时 API Key</label><input id="api-key-input" type="password" autocomplete="off" placeholder="仅在你自己的设备填写" /></div><div class="field"><label for="model-input">模型名称</label><input id="model-input" type="text" placeholder="例如 deepseek-chat" /></div><div id="custom-extra" class="field hidden"><label for="custom-url-input">API 基础地址（Base URL）</label><input id="custom-url-input" type="url" placeholder="https://your-api.example/v1" /></div></div>
+    <div class="actions" style="justify-content:flex-end;margin-top:18px"><button type="button" class="btn" id="settings-cancel">取消</button><button type="button" class="btn primary" id="settings-save">保存设置</button></div>
+  </div>
+</div>
+<input id="import-file" type="file" accept="application/json,.json" hidden />
+<div id="toast" class="hidden" role="status"></div>
+<script>
+(() => {
+  'use strict';
+  const STORE_KEY = 'matin_studio_projects_v3';
+  const LEGACY_KEY = 'matin_studio_projects_v2';
+  const PREF_KEY = 'matin_studio_model_pref_v2';
+  const fields = ['name','roleName','persona','context','studentTask','greeting','rubric','keywords','hints','scriptRules'];
+  const POS_W=236, POS_H=145;
+  const makeEdge=(from,to,condition='always',keyword='',label='')=>({id:uid('edge'),from,to,condition,keyword,label});
+  const projectFields = ['title','desc','category','objective'];
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const uid = prefix => prefix + '-' + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
+  const stamp = () => new Date().toISOString().slice(0,10);
+  let toastTimer;
+  const notify = message => { $('toast').textContent = message; $('toast').classList.remove('hidden'); clearTimeout(toastTimer); toastTimer=setTimeout(()=> $('toast').classList.add('hidden'),3500); };
+  const makeNode = (overrides={}) => ({ id:uid('node'), name:'新阶段：任务说明', roleName:'实训指导教师', persona:'专业、耐心，优先追问学生的分析依据；不要直接公布答案。', context:'请在此介绍实训发生的场景、设备状态和限制条件。', studentTask:'描述学生本阶段必须完成的具体任务。', greeting:'你好，请先说明你打算如何完成当前任务。', rubric:'知识掌握、分析依据、风险识别', keywords:'', hints:'请结合任务目标补充你的判断依据。', scriptRules:'', ...overrides });
+  const demoProjects = () => [
+    { id:uid('proj'), title:'熔窑冷修模拟实训导师', desc:'工程教学情境演示：按流程编排安全、检修和验收等环节。示例资料不能代替现场操作规程。', category:'材料/工程', objective:'熟悉检修方案编制与工程沟通的基本流程。', updatedAt:stamp(), nodes:[
+      makeNode({name:'阶段一：安全技术交底',roleName:'安全督导员·赵科长',persona:'严谨负责，要求解释作业前的风险识别与审批流程。',context:'冷修作业开始前，需要核查现场安全条件。',studentTask:'说明你如何组织现场风险排查、安全交底和开工确认。',greeting:'请向我汇报你的开工前安全准备思路。',rubric:'风险识别、审批确认、现场复核与应急准备',keywords:'风险,审批,复核',hints:'可以先从危险源、审批和人员分工说起。',scriptRules:'风险=>你提到了风险识别，请接着说明如何留下核查记录。\n审批=>有审批意识很好，谁来确认现场条件？'}),
+      makeNode({name:'阶段二：损毁勘验与方案制定',roleName:'总工程师·张工',persona:'重视证据、材料相容性和工程可验证性。',context:'现场观察到耐火结构局部损伤，需要提出经专业人员审核的检修思路。',studentTask:'介绍损伤调查、原因假设和方案论证步骤。',greeting:'现在进入损毁勘验环节。你会先收集哪些证据？',rubric:'现象记录、原因分析、方案比较、专家复核',keywords:'记录,原因,方案',hints:'除了现象描述，还应说明如何验证损伤原因。'}),
+      makeNode({name:'阶段三：验收方案答辩',roleName:'答辩专家·王教授',persona:'关注技术方案的论证完整性、记录可追溯性与复盘。',context:'假设工程方案已按审批流程完成，需要进行总结汇报。',studentTask:'准备验收证据、问题复盘和后续跟踪计划。',greeting:'请概述你的验收证据链及仍需跟踪的问题。',rubric:'检验记录、验收依据、遗留问题、后续跟踪',keywords:'记录,验收,跟踪'})
+    ]},
+    {id:uid('proj'), title:'高阶控制算法实训助教',desc:'电气与自动化课程教学示例：通过角色追问训练技术分析思路。',category:'自动化/控制',objective:'训练对电机控制现象的推理与表达能力。',updatedAt:stamp(),nodes:[
+      makeNode({name:'阶段一：SVPWM 死区效应分析',roleName:'算法导师·李博士',persona:'偏好启发式提问，重视电路现象与控制理论的对应。',context:'逆变器低速运行时出现转矩脉动，需要梳理潜在原因。',studentTask:'解释死区时间可能造成的电压误差及验证思路。',greeting:'低速运行时的电机出现明显抖动。你打算先检查什么？',rubric:'PWM 死区时间、电压误差、验证方法',keywords:'死区,电压,误差',scriptRules:'死区=>能进一步解释死区时间为什么会导致等效输出电压偏差吗？'})
+    ]}
+  ];
+  // V2 兼容迁移：旧数据只有线性数组，升级时补充初始位置和相邻连线。
+  // 重建节点 ID 时，同步映射连线端点，保证保存、导入与复制后关系不丢失。
+  const normalizeProject = raw => {
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.nodes)) throw new Error('项目缺少 nodes 数组');
+    const tf = (v,f='') => typeof v==='string' ? v.slice(0,15000):f;
+    const original=raw.nodes.slice(0,50);
+    if(!original.length) throw new Error('至少需要一个任务节点');
+    const idMap=new Map();
+    const nodes=original.map((n,i)=>{
+      if(!n || typeof n!=='object') throw new Error('节点格式错误');
+      const clean=makeNode(); fields.forEach(f=>clean[f]=tf(n[f],clean[f]));
+      clean.x=Number.isFinite(n.x)?Math.max(20,Math.min(3800,n.x)):70+(i%4)*315;
+      clean.y=Number.isFinite(n.y)?Math.max(20,Math.min(2800,n.y)):120+Math.floor(i/4)*235;
+      if(typeof n.id==='string')idMap.set(n.id,clean.id);
+      return clean;
+    });
+    let edges=[];
+    if(Array.isArray(raw.edges)) {
+      const seen=new Set();
+      for(const e of raw.edges.slice(0,150)){
+        const from=idMap.get(e?.from),to=idMap.get(e?.to);
+        if(!from||!to||from===to)continue;
+        const condition=e.condition==='keyword'?'keyword':'always';
+        const fingerprint=from+'|'+to+'|'+condition+'|'+tf(e.keyword);
+        if(seen.has(fingerprint))continue; seen.add(fingerprint);
+        edges.push(makeEdge(from,to,condition,tf(e.keyword).slice(0,100),tf(e.label).slice(0,100)));
       }
-    ];
-
-    let currentProject = projects[0];
-    let currentNodeIndex = 0;
-    let chatHistory = [];
-    
-    // 模型配置存储
-    let apiConfig = JSON.parse(localStorage.getItem('matin_api_config') || '{"provider":"offline","key":"","customUrl":""}');
-
-    function init() {
-      lucide.createIcons();
-      renderDashboard();
-      updateEngineDisplay();
+    } else {
+      edges=nodes.slice(0,-1).map((n,i)=>makeEdge(n.id,nodes[i+1].id));
     }
-
-    function updateEngineDisplay() {
-      const names = {
-        'offline': '内置智能仿真 (免Key)',
-        'deepseek': 'DeepSeek-V3/R1',
-        'qwen': '阿里通义千问',
-        'zhipu': '智谱清言 (GLM-4)',
-        'kimi': 'Moonshot (Kimi)',
-        'gemini': 'Google Gemini',
-        'custom': '自定义接口'
-      };
-      const label = names[apiConfig.provider] || '离线仿真';
-      document.getElementById('api-status-label').innerText = `模型: ${label}`;
-      const tag = document.getElementById('current-engine-tag');
-      if (tag) tag.innerText = `当前引擎: ${label}`;
-    }
-
-    function switchView(viewName) {
-      ['dashboard', 'studio', 'runtime'].forEach(v => {
-        document.getElementById(`view-${v}`).classList.add('hidden');
-      });
-      document.getElementById(`view-${viewName}`).classList.remove('hidden');
-
-      document.getElementById('nav-dash').className = viewName === 'dashboard' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
-      document.getElementById('nav-studio').className = viewName === 'studio' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
-      document.getElementById('nav-run').className = viewName === 'runtime' ? 'px-3 py-1.5 rounded-lg text-blue-600 bg-blue-50 font-semibold transition' : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
-
-      if (viewName === 'studio') renderStudio();
-      if (viewName === 'runtime') setupRuntime();
-      lucide.createIcons();
-    }
-
-    function renderDashboard() {
-      const grid = document.getElementById('projects-grid');
-      grid.innerHTML = projects.map(p => `
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
-          <div>
-            <div class="h-32 bg-gradient-to-r from-blue-700 via-indigo-600 to-cyan-600 p-4 relative flex flex-col justify-between text-white">
-              <div class="flex justify-between items-start">
-                <span class="text-[11px] bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full font-semibold border border-white/30">实训智能体</span>
-                <span class="text-[11px] bg-emerald-500/80 backdrop-blur px-2 py-0.5 rounded font-medium">就绪</span>
-              </div>
-              <h3 class="text-base font-bold tracking-wide">${p.title}</h3>
-            </div>
-            <div class="p-5 space-y-3">
-              <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">${p.desc}</p>
-              <div class="flex items-center space-x-2 text-[11px] text-slate-400">
-                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${p.category}</span>
-                <span>•</span>
-                <span>${p.nodes.length} 个任务节点</span>
-              </div>
-            </div>
-          </div>
-          <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-            <button onclick="editProject('${p.id}')" class="text-xs font-semibold text-slate-600 hover:text-blue-600 flex items-center space-x-1">
-              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-              <span>配置脚本</span>
-            </button>
-            <button onclick="startRunProject('${p.id}')" class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg flex items-center space-x-1 transition shadow-sm">
-              <i data-lucide="play" class="w-3.5 h-3.5"></i>
-              <span>进入实训</span>
-            </button>
-          </div>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    function renderStudio() {
-      document.getElementById('edit-project-title').value = currentProject.title;
-      const container = document.getElementById('nodes-container');
-      container.innerHTML = currentProject.nodes.map((node, idx) => `
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-            <div class="flex items-center space-x-2">
-              <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold">${idx + 1}</span>
-              <span class="text-sm font-bold text-slate-800">任务节点 ${idx + 1}</span>
-            </div>
-            ${currentProject.nodes.length > 1 ? `
-              <button onclick="deleteNode(${idx})" class="text-xs text-red-500 hover:text-red-700 flex items-center space-x-1">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                <span>删除节点</span>
-              </button>
-            ` : ''}
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">任务阶段名称</label>
-              <input type="text" value="${node.name}" onchange="currentProject.nodes[${idx}].name = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">分配智能体角色名称</label>
-              <input type="text" value="${node.roleName}" onchange="currentProject.nodes[${idx}].roleName = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">角色人设与行为提示词 (Persona & Prompt)</label>
-            <textarea rows="2" onchange="currentProject.nodes[${idx}].persona = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none">${node.persona}</textarea>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">节点开场白 (Greeting)</label>
-              <input type="text" value="${node.greeting}" onchange="currentProject.nodes[${idx}].greeting = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1">考核标准量规 (Rubric)</label>
-              <input type="text" value="${node.rubric}" onchange="currentProject.nodes[${idx}].rubric = this.value" class="w-full text-xs border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-blue-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    function addMilestoneNode() {
-      currentProject.nodes.push({
-        name: `新阶段 ${currentProject.nodes.length + 1}`,
-        roleName: '专业指导教师',
-        persona: '专业严谨，引导学员通过严谨的工程逻辑分析问题。',
-        greeting: '进入下一环节，请简明阐述你的设计依据与实现路径。',
-        rubric: '运用标准专业术语，且分析过程逻辑自洽'
-      });
-      renderStudio();
-    }
-
-    function deleteNode(index) {
-      if (currentProject.nodes.length <= 1) return;
-      currentProject.nodes.splice(index, 1);
-      renderStudio();
-    }
-
-    function editProject(id) {
-      currentProject = projects.find(p => p.id === id);
-      switchView('studio');
-    }
-
-    function startRunProject(id) {
-      currentProject = projects.find(p => p.id === id);
-      currentNodeIndex = 0;
-      chatHistory = [];
-      switchView('runtime');
-    }
-
-    function runCurrentProject() {
-      currentNodeIndex = 0;
-      chatHistory = [];
-      switchView('runtime');
-    }
-
-    function createNewProject() {
-      const newP = {
-        id: 'proj-' + Date.now(),
-        title: '新建实训任务智能体',
-        desc: '自定义实训阶段节点与角色扮演配置。',
-        category: '自定义',
-        updatedAt: '2026-10-08',
-        nodes: [
-          {
-            name: '阶段一：方案初步评审',
-            roleName: '主审总监',
-            persona: '把控整体技术方向，着重考察方案的安全性与可行性。',
-            greeting: '请简明阐述你的任务规划与首要考量。',
-            rubric: '阐明核心技术原理与潜在风险控制措施'
-          }
-        ]
-      };
-      projects.unshift(newP);
-      currentProject = newP;
-      renderDashboard();
-      switchView('studio');
-    }
-
-    function setupRuntime() {
-      document.getElementById('run-project-title').innerText = currentProject.title;
-      updateNodeUI();
-      if (chatHistory.length === 0) {
-        const activeNode = currentProject.nodes[currentNodeIndex];
-        chatHistory.push({
-          role: 'assistant',
-          text: activeNode.greeting,
-          sender: activeNode.roleName
-        });
-        renderMessages();
+    return {id:uid('proj'),title:tf(raw.title,'未命名项目')||'未命名项目',desc:tf(raw.desc),category:tf(raw.category,'自定义'),objective:tf(raw.objective),updatedAt:stamp(),startNodeId:idMap.get(raw.startNodeId)||nodes[0].id, nodes,edges};
+  };
+  const loadProjects = () => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY) || localStorage.getItem(LEGACY_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed.slice(0,100).map(normalizeProject);
       }
+    } catch(e) { console.warn('项目数据无法读取',e); }
+    return demoProjects().map(normalizeProject);
+  };
+  let projects = loadProjects();
+  let projectId = projects[0]?.id;
+  let selectedNodeId = projects[0]?.nodes[0]?.id;
+  let selectedEdgeId = null;
+  let linkSourceId = null;
+  let flowDrag = null;
+  let runVisited = [];
+  let runComplete = false;
+  let visitStartHistoryIndex = 0;
+  let view = 'dashboard';
+  let chatHistory = [];
+  let runIndex = 0;
+  let runtimeGeneration = 0;
+  let sending = false;
+  let abortRequest = null;
+  const modelDefaults = {deepseek:'deepseek-chat',qwen:'qwen-plus',zhipu:'glm-4-flash',kimi:'moonshot-v1-8k',gemini:'gemini-2.5-flash',custom:''};
+  const endpoints = { deepseek:'https://api.deepseek.com/chat/completions',qwen:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',zhipu:'https://open.bigmodel.cn/api/paas/v4/chat/completions',kimi:'https://api.moonshot.cn/v1/chat/completions' };
+  const providers = ['offline','deepseek','qwen','zhipu','kimi','gemini','custom'];
+  const config = {provider:'offline',model:'',url:'',key:''};
+  try { const saved=JSON.parse(localStorage.getItem(PREF_KEY) || '{}'); if (providers.includes(saved.provider)) config.provider=saved.provider; if(typeof saved.model==='string') config.model=saved.model; if(typeof saved.url==='string') config.url=saved.url; } catch {}
+  const currentProject = () => projects.find(p=>p.id===projectId) || projects[0];
+  const currentNode = () => currentProject()?.nodes.find(n=>n.id===selectedNodeId) || currentProject()?.nodes[0];
+  const store = () => { try {localStorage.setItem(STORE_KEY,JSON.stringify(projects)); $('save-status').textContent='✓ 已保存在本机'; return true;} catch(e) {$('save-status').textContent='⚠ 本机存储失败';notify('浏览器保存失败，请立即导出 JSON 备份。');return false;} };
+  let storeTimer;
+  const scheduleSave = () => { $('save-status').textContent='保存中…'; clearTimeout(storeTimer);storeTimer=setTimeout(store,230); };
+  const flushSave = () => {clearTimeout(storeTimer);store();};
+  const updateProject = () => {const p=currentProject();if(p){p.updatedAt=stamp();scheduleSave();}};
+  const cancelPending = () => { runtimeGeneration++; abortRequest?.abort(); abortRequest=null;sending=false; $('send-button').disabled=false; $('send-button').textContent='发送 ↗'; };
+  const showView = next => {
+    if(next!=='runtime') cancelPending();
+    if(next==='studio' && !currentProject()) return showView('dashboard');
+    if(next==='runtime' && !currentProject()) return showView('dashboard');
+    view=next;
+    ['dashboard','studio','runtime'].forEach(v => { $('view-'+v).classList.toggle('hidden',v!==next);const b=document.querySelector(`[data-nav="${v}"]`);b.classList.toggle('active',v===next); });
+    if(next==='dashboard') renderDashboard();
+    if(next==='studio') renderStudio();
+    if(next==='runtime') renderRuntime();
+  };
+  const renderDashboard = () => {
+    const grid = $('projects-grid');
+    grid.innerHTML = projects.map(p=>`<article class="project-card">
+       <div class="project-head"><div class="project-top"><span class="project-pill">实训智能体</span><span class="status">可编辑</span></div><h3>${esc(p.title)}</h3></div>
+       <div class="project-body"><p>${esc(p.desc || '暂无项目介绍，进入编辑器后可自行编写。')}</p><div class="meta"><span class="badge">${esc(p.category)}</span>　·　${p.nodes.length} 个任务节点</div></div>
+       <div class="project-foot"><button class="btn flat tiny" type="button" data-card="edit" data-id="${esc(p.id)}">✎ 配置剧本</button><div class="actions"><button class="btn flat tiny" type="button" data-card="more" data-id="${esc(p.id)}">⋯ 操作</button><button class="btn primary tiny" type="button" data-card="run" data-id="${esc(p.id)}">▷ 进入实训</button></div></div>
+      </article>`).join('');
+    if(!projects.length) grid.innerHTML='<p class="notice">目前没有项目，请点击“新建实训项目”。</p>';
+  };
+  const renderStageList = () => {
+    const p=currentProject();
+    $('stage-items').innerHTML = p.nodes.map((n,i)=> `<div class="node-item ${n.id===selectedNodeId?'selected':''}"><button type="button" class="node-open" data-node-action="select" data-id="${esc(n.id)}"><span class="node-num">${i+1}</span><span class="node-name">${esc(n.name||'未命名节点')}</span></button><div class="node-tools"><button data-node-action="up" data-id="${esc(n.id)}" ${i===0?'disabled':''} title="上移节点">↑ 上移</button><button data-node-action="down" data-id="${esc(n.id)}" ${i===p.nodes.length-1?'disabled':''} title="下移节点">↓ 下移</button><button data-node-action="copy" data-id="${esc(n.id)}">复制</button><button data-node-action="delete" data-id="${esc(n.id)}" ${p.nodes.length===1?'disabled':''}>删除</button></div></div>`).join('');
+  };
+  const inputField = (label,key,val,opts={}) => `<div class="field"><label for="field-${key}">${esc(label)}</label>${opts.rows?`<textarea id="field-${key}" data-field="${key}" rows="${opts.rows}" placeholder="${esc(opts.placeholder||'')}">${esc(val)}</textarea>`:`<input id="field-${key}" data-field="${key}" value="${esc(val)}" placeholder="${esc(opts.placeholder||'')}"/>`}${opts.hint?`<p class="hint">${esc(opts.hint)}</p>`:''}</div>`;
+  const projectField = (label,key,val,rows=0) => `<div class="field"><label for="project-${key}">${esc(label)}</label>${rows?`<textarea id="project-${key}" rows="${rows}" data-project-field="${key}">${esc(val)}</textarea>`:`<input id="project-${key}" data-project-field="${key}" value="${esc(val)}"/>`}</div>`;
+  const renderProjectSettings = () => {
+    const p=currentProject();
+    $('editor-fields').innerHTML=`<div class="group"><div class="group-title"><span class="dot">项目</span> 编写实训项目介绍</div><div class="form-grid">${projectField('项目名称','title',p.title)}${projectField('所属学科 / 分类','category',p.category)}</div>${projectField('项目描述（在项目库展示）','desc',p.desc,3)}${projectField('总体教学目标','objective',p.objective,3)}<p class="notice">以上内容会自动保存到当前浏览器。要分享给其他老师或电脑，请通过“导出剧本”生成 JSON 文件。</p></div><div class="actions"><button class="btn primary" data-go-node="yes">继续编写任务节点 →</button></div>`;
+  };
+  const renderNodeEditor = () => {
+    const n=currentNode();
+    if(!n) return;
+    $('editor-fields').innerHTML=`
+      <div class="group"><div class="group-title"><span class="dot">入口</span> 节点设置</div><div class="actions" style="margin-bottom:12px"><span class="badge">${currentProject().startNodeId===n.id?'★ 当前入口节点':'普通任务节点'}</span><button class="btn tiny soft" data-set-start="yes" ${currentProject().startNodeId===n.id?'disabled':''}>设为实训入口</button></div><p class="hint">按左侧列表或流程图选择节点；连线决定执行顺序。</p></div>
+      <div class="group"><div class="group-title"><span class="dot">01</span> 阶段名称与角色设定</div><div class="form-grid">${inputField('阶段 / 任务名称','name',n.name)}${inputField('智能体角色名称','roleName',n.roleName)}</div>${inputField('人物性格、职责、说话方式（Persona）','persona',n.persona,{rows:3,placeholder:'例如：严格的现场主管，善于通过追问进行教学。'})}</div>
+      <div class="group"><div class="group-title"><span class="dot">02</span> 自己编写教学剧本</div>
+      ${inputField('任务背景 / 世界观','context',n.context,{rows:4,placeholder:'例如：车间发生某类故障，已知条件和现场约束……'})}
+      ${inputField('本阶段学生任务','studentTask',n.studentTask,{rows:3,placeholder:'请写清学生要做什么；这一段会展示在模拟舱左侧。'})}
+      ${inputField('本阶段角色开场白','greeting',n.greeting,{rows:3,placeholder:'学生进入该任务节点时，智能体说的第一句话。'})}</div>
+      <div class="group"><div class="group-title"><span class="dot">03</span> 考核与提示规则</div>
+      ${inputField('考核标准（Rubric）','rubric',n.rubric,{rows:3,placeholder:'例如：明确问题原因、解释依据、给出合理改进措施。'})}
+      ${inputField('离线参考关键词（可选，逗号分隔）','keywords',n.keywords,{placeholder:'例如：死区,电压误差,补偿'})}
+      ${inputField('未匹配时的引导话术（离线模式）','hints',n.hints,{rows:2})}
+      ${inputField('离线剧本台词规则（每行：触发词=>回复）','scriptRules',n.scriptRules,{rows:5,placeholder:'安全=>请你展开解释安全检查流程。\n温度=>你会如何检查温度测量是否准确？',hint:'从上往下匹配第一条规则；没有命中时使用关键词提醒。纯文本匹配，不会执行代码，也不会代替教师评分。'})}
+      </div><div class="group"><div class="group-title"><span class="dot">04</span> 调试与预览</div><details id="prompt-details"><summary>展开查看发送给真实 AI 的角色提示词</summary><pre id="prompt-preview"></pre></details><p class="hint" style="margin-top:12px">真实 AI 模式将使用项目目标、角色人设、任务背景和考核标准生成引导式回答；模型反馈仅供参考，不自动授予通过资格。</p></div>`;
+    refreshPromptPreview();
+  };
+  let editorMode = 'node';
+  const renderStudio = () => {
+    if(!currentProject()) return;
+    if(!currentProject().nodes.some(n=>n.id===selectedNodeId)) selectedNodeId=currentProject().nodes[0].id;
+    if(editorMode==='edge'&&!currentProject().edges.some(e=>e.id===selectedEdgeId))editorMode='node';
+    $('studio-heading').textContent=currentProject().title;
+    renderStageList();
+    renderGraph();
+    if(editorMode==='project') renderProjectSettings(); else if(editorMode==='edge') renderEdgeEditor(); else renderNodeEditor();
+  };
+  const buildSystemPrompt = (node,p) => `你正在参与“${p.title}”的教学情境模拟。你扮演角色：${node.roleName}。
+项目教学目标：${p.objective || '引导学生进行合理分析'}。
+角色设定：${node.persona}。
+当前阶段：${node.name}。
+任务背景：${node.context}。
+学生应完成：${node.studentTask}。
+教师设计的考核标准：${node.rubric}。
+教学方式：使用角色口吻回应学生，必要时追问、指出遗漏并提供启发，但不要直接代学生完成全部任务。
+重要：你只提供教学反馈，不能声称完成了正式考试或认证；不得自行决定跳转节点。控制阶段切换由教师演示操作负责。`;
+  const refreshPromptPreview = () => { if($('prompt-preview')) $('prompt-preview').textContent=buildSystemPrompt(currentNode(),currentProject()); };
+  const downloadText = (name,textContent,type='application/json') => {const blob=new Blob([textContent],{type:type+';charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+  const nameSafe = s=> (s||'Matin-剧本').replace(/[\\/:*?"<>|\r\n]/g,'_').slice(0,60);
+  const exportProject = () => {flushSave();const p=currentProject();if(p)downloadText(nameSafe(p.title)+'.json',JSON.stringify({format:'matin-studio',version:3,project:p},null,2));};
+  const exportAll = () => {flushSave();downloadText('Matin-Studio-全部剧本备份.json',JSON.stringify({format:'matin-studio',version:3,projects},null,2));};
+  const newProject = () => {
+    const p=normalizeProject({title:'新建实训项目',desc:'请在项目设置里编写项目介绍。',category:'自定义',objective:'',nodes:[makeNode({name:'阶段一：开始实训',context:'',studentTask:'',greeting:'你好，欢迎开始实训。'})]});
+    projects.unshift(p);projectId=p.id;selectedNodeId=p.nodes[0].id;editorMode='project';selectedEdgeId=null;linkSourceId=null;flushSave();showView('studio');notify('新项目已创建，可从右侧开始编写。');
+  };
+  const selectProject = (id,target) => {const p=projects.find(x=>x.id===id);if(!p)return; projectId=p.id;selectedNodeId=p.nodes[0].id;editorMode='node';selectedEdgeId=null;linkSourceId=null;if(target==='studio') showView('studio');else startRuntime();};
+  const copyProject = id => {const src=projects.find(p=>p.id===id);if(!src)return;const copy=normalizeProject(src);copy.title+='（副本）';projects.unshift(copy);projectId=copy.id;selectedNodeId=copy.nodes[0].id;flushSave();renderDashboard();notify('项目已复制。');};
+  const deleteProject = id => {const p=projects.find(x=>x.id===id);if(!p||!confirm(`删除项目「${p.title}」？此操作无法撤销，请先导出备份。`))return;projects=projects.filter(x=>x.id!==id);if(!projects.length)projects=demoProjects();projectId=projects[0].id;selectedNodeId=projects[0].nodes[0].id;flushSave();renderDashboard();notify('项目已删除。');};
+  const processNodeAction = (action,id) => {
+    const p=currentProject();const i=p.nodes.findIndex(n=>n.id===id);if(i<0)return;
+    if(action==='select'){selectedNodeId=id;selectedEdgeId=null;editorMode='node';renderStudio();return;}
+    if(action==='up'&&i>0) [p.nodes[i-1],p.nodes[i]]=[p.nodes[i],p.nodes[i-1]];
+    else if(action==='down'&&i<p.nodes.length-1) [p.nodes[i+1],p.nodes[i]]=[p.nodes[i],p.nodes[i+1]];
+    else if(action==='copy'){ const copy=makeNode({...p.nodes[i],id:uid('node'),name:p.nodes[i].name+'（副本）',x:p.nodes[i].x+45,y:p.nodes[i].y+180});p.nodes.splice(i+1,0,copy);selectedNodeId=copy.id;notify('已复制节点，尚未建立连线。'); }
+    else if(action==='delete'){if(p.nodes.length<=1)return;if(!confirm('确定删除该任务节点？关联连线也会被删除。'))return;p.nodes.splice(i,1);p.edges=p.edges.filter(e=>e.from!==id&&e.to!==id);if(p.startNodeId===id)p.startNodeId=p.nodes[0].id;selectedNodeId=p.nodes[Math.max(0,i-1)].id;linkSourceId=null;}
+    updateProject();editorMode='node';renderStudio();
+  };
+  const addNode = () => {const p=currentProject();if(p.nodes.length>=50)return notify('每个项目最多 50 个节点。');const tail=p.nodes[p.nodes.length-1];const n=makeNode({name:`阶段${p.nodes.length+1}：新任务`,x:(tail.x||70)+315,y:tail.y||120});p.nodes.push(n);if(!p.edges.some(e=>e.from===tail.id))p.edges.push(makeEdge(tail.id,n.id));selectedNodeId=n.id;selectedEdgeId=null;editorMode='node';updateProject();renderStudio();notify('新节点已加入。拖动卡片可调整位置，连线可编辑分支。');};
+  const messagesRender = () => { const box=$('chat-messages');box.innerHTML=chatHistory.map(m=>`<div class="bubble-wrap ${m.role==='user'?'me':''}"><div class="bubble">${m.role==='user'?'':`<div class="sender">${esc(m.sender||'实训导师')}</div>`}${esc(m.text)}</div></div>`).join('');box.scrollTop=box.scrollHeight; };
+  const say = (role,text,sender,idx=runIndex) => {chatHistory.push({role,text,sender,node:idx,time:new Date().toISOString()});messagesRender();};
+  const renderRuntime = () => {
+    const p=currentProject();const n=p.nodes[runIndex]||p.nodes[0];if(!n)return;
+    $('run-project-title').textContent=p.title;
+    $('run-stage-caption').textContent=`当前节点：${n.name}（流程中共 ${p.nodes.length} 个节点）`;
+    $('run-role-name').textContent=n.roleName;
+    $('run-role-persona').textContent=n.persona;
+    $('run-student-task').textContent=n.studentTask||'请根据导师引导完成本阶段任务。';
+    $('run-stages').innerHTML=runVisited.map((id,i)=>{
+      const node=graphNode(id);return `<div class="stage-progress ${i===runVisited.length-1?'current':'done'}">${i===runVisited.length-1?'▶':'✓'}　${esc(node?.name||'已删除节点')}</div>`;
+    }).join('');
+    const choices=outgoing(n.id);
+    const lastAnswers=chatHistory.slice(visitStartHistoryIndex).filter(m=>m.node===runIndex&&m.role==='user').map(m=>m.text).join('\n');
+    if(runComplete){$('run-branches').innerHTML='<p class="hint">本次演示已结束。</p>';
+    } else if(!choices.length){$('run-branches').innerHTML='<p class="hint">当前为流程终点，可点击下方“结束预览”。</p>';
+    } else {
+      $('run-branches').innerHTML=choices.map(e=>{
+        const target=graphNode(e.to),hit=e.condition==='always'||(e.keyword.trim()&&lastAnswers.includes(e.keyword.trim()));
+        const label=e.label.trim()||(e.condition==='keyword'?`关键词：${e.keyword||'未配置'}`:'默认流程');
+        return `<button type="button" class="btn branch-choice ${hit?'suggested':''}" data-branch="${esc(e.id)}" ${hit?'':'disabled'}>
+         <span>↗ ${esc(label)} → ${esc(target?.name||'缺失节点')}<span class="condition">${e.condition==='always'?'默认分支（教师可选）':hit?`学生已提及「${esc(e.keyword)}」`:`需在本阶段回答中包含「${esc(e.keyword||'未配置关键词')}」`}</span></span></button>`;
+      }).join('')+'<p class="flow-mini">选择一个符合条件的分支，由教师确认进入下一节点；不会自动判分。</p>';
     }
+    $('teacher-next-button').textContent=choices.length?'请从上方分支中选择下一阶段':'教师演示：结束本次实训 ✓';
+    $('teacher-next-button').disabled=runComplete||choices.length>0;
+    $('runtime-model-name').textContent=config.provider==='offline'?'离线剧本演示 · 不自动判分':`模型反馈：${config.provider} / ${config.model||modelDefaults[config.provider]||'自定义模型'}`;
+    messagesRender();
+  };
+  const startRuntime = () => {
+    cancelPending();runComplete=false;runVisited=[];chatHistory=[];visitStartHistoryIndex=0;
+    const p=currentProject();const n=graphNode(p.startNodeId)||p.nodes[0];
+    runIndex=p.nodes.findIndex(x=>x.id===n.id);runVisited.push(n.id);
+    showView('runtime');say('assistant',n.greeting,n.roleName);
+  };
+  const takeBranch = id => {
+    if(view!=='runtime'||runComplete)return;
+    const p=currentProject(),prev=p.nodes[runIndex],edge=p.edges.find(e=>e.id===id&&e.from===prev.id);
+    if(!edge)return;
+    const lastAnswers=chatHistory.slice(visitStartHistoryIndex).filter(m=>m.node===runIndex&&m.role==='user').map(m=>m.text).join('\n');
+    if(edge.condition==='keyword'&&(!edge.keyword.trim()||!lastAnswers.includes(edge.keyword.trim())))return notify('当前节点的学生回答还未包含该分支的触发词。');
+    const nextIndex=p.nodes.findIndex(n=>n.id===edge.to);if(nextIndex<0)return notify('目标节点不存在。');
+    cancelPending();visitStartHistoryIndex=chatHistory.length;runIndex=nextIndex;runVisited.push(edge.to);renderRuntime();
+    const next=p.nodes[runIndex];
+    say('system',`【教师确认分支】${prev.name} → ${next.name}\n分支：${edge.label|| (edge.condition==='keyword'?'关键词：'+edge.keyword:'默认')}\n\n${next.greeting}`,'系统消息');
+  };
+  const advanceNode = () => {
+    if(view!=='runtime'||runComplete)return;
+    const node=currentProject().nodes[runIndex];
+    if(outgoing(node.id).length)return notify('请在“下一阶段分支”区域中选择路径。');
+    cancelPending();runComplete=true;
+    say('system',`【演示结束】已到达剧情终点「${node.name}」，共访问 ${runVisited.length} 个节点（可能包含重复访问）。这不是正式考试合格证明。`,'系统消息');
+    renderRuntime();
+  };
 
-    function updateNodeUI() {
-      const activeNode = currentProject.nodes[currentNodeIndex];
-      document.getElementById('run-role-name').innerText = activeNode.roleName;
-      document.getElementById('run-role-avatar').innerText = activeNode.roleName[0] || '导';
-      document.getElementById('run-role-persona').innerText = activeNode.persona;
-      document.getElementById('run-node-rubric').innerText = activeNode.rubric;
-      document.getElementById('run-progress-text').innerText = `节点 ${currentNodeIndex + 1} / ${currentProject.nodes.length}`;
-
-      const listContainer = document.getElementById('run-milestones-list');
-      listContainer.innerHTML = currentProject.nodes.map((n, i) => {
-        let isDone = i < currentNodeIndex;
-        let isCurrent = i === currentNodeIndex;
-        return `
-          <div class="flex items-center space-x-2.5 p-2 rounded-lg text-xs ${isCurrent ? 'bg-blue-50 border border-blue-200 font-semibold text-blue-900' : isDone ? 'text-emerald-700 bg-emerald-50/50' : 'text-slate-400'}">
-            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${isCurrent ? 'bg-blue-600 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}">
-              ${isDone ? '✓' : i + 1}
-            </span>
-            <span class="truncate">${n.name}</span>
-          </div>
-        `;
+  const offlineAnswer = (student,node) => {
+    const rules=node.scriptRules.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+    for(const rule of rules){const i=rule.indexOf('=>');if(i<=0)continue;const trigger=rule.slice(0,i).trim();const reply=rule.slice(i+2).trim();if(trigger && reply && student.includes(trigger))return reply;}
+    const keywords=node.keywords.split(/[,，、;；\n]+/).map(w=>w.trim()).filter(Boolean);
+    const found=keywords.filter(w=>student.includes(w));
+    if(found.length) return `你提到了“${found.join('、')}”。请进一步解释你的依据，以及你准备如何验证这些判断。\n\n（演示提示：命中参考词不等于考核合格。）`;
+    return node.hints || '请进一步解释你的分析过程，我想了解你作出这个判断的理由。';
+  };
+  const askModel = async (node,p,history,signal) => {
+    const sys=buildSystemPrompt(node,p);
+    if(config.provider==='offline') throw new Error('当前为离线模式');
+    if(!config.key) throw new Error('尚未填写临时 API Key，请点击右上角 AI 模型设置。');
+    const model=config.model || modelDefaults[config.provider];
+    if(!model) throw new Error('请填写模型名称。');
+    let res;
+    if(config.provider==='gemini'){
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+      res=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json','x-goog-api-key':config.key},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:history.map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.text}]}))})});
+    }else{
+      const url=config.provider==='custom' ? config.url.replace(/\/+$/,'')+'/chat/completions':endpoints[config.provider];
+      if(!url) throw new Error('未配置有效的 API 地址。');
+      res=await fetch(url,{method:'POST',signal,headers:{'Content-Type':'application/json',Authorization:`Bearer ${config.key}`},body:JSON.stringify({model,messages:[{role:'system',content:sys},...history.map(m=>({role:m.role,content:m.text}))]})});
+    }
+    let payload;
+    try { payload=await res.json(); } catch {throw new Error(`API 返回无法解析（HTTP ${res.status}）`);}
+    if(!res.ok) throw new Error(`API 请求失败（HTTP ${res.status}）：${String(payload?.error?.message || payload?.message || '请检查密钥、模型、余额或浏览器跨域限制').slice(0,180)}`);
+    const result=config.provider==='gemini' ? (payload?.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('') : payload?.choices?.[0]?.message?.content;
+    if(typeof result!=='string'||!result.trim()) throw new Error('API 没有返回可展示的文本。');
+    return result.replace(/\[PASS_NODE\]/g,'').trim();
+  };
+  const sendMessage = async () => {
+    if(sending||view!=='runtime')return;
+    const input=$('user-input');const text=input.value.trim();if(!text)return;
+    const node=currentProject().nodes[runIndex];const p=currentProject();const generation=runtimeGeneration;const stage=runIndex;
+    input.value='';say('user',text,'学生');renderRuntime();
+    if(config.provider==='offline'){say('assistant',offlineAnswer(text,node),node.roleName);return;}
+    sending=true;$('send-button').disabled=true;$('send-button').textContent='生成中…';
+    abortRequest=new AbortController();
+    const timeout=setTimeout(()=>abortRequest?.abort(),30000);
+    try {const history=chatHistory.slice(visitStartHistoryIndex).filter(m=>m.node===stage&&(m.role==='user'||m.role==='assistant')).map(m=>({role:m.role,text:m.text}));
+      const reply=await askModel(node,p,history,abortRequest.signal);
+      if(runtimeGeneration!==generation||runIndex!==stage||view!=='runtime')return;
+      say('assistant',reply,node.roleName);
+    } catch(e) {
+      if(runtimeGeneration!==generation||runIndex!==stage||view!=='runtime')return;
+      say('system',`模型请求未成功：${e.name==='AbortError'?'请求超时或被取消':e.message}。\n请检查网络和配置。系统没有自动模拟考核通过。`,'连接提示');
+    } finally {clearTimeout(timeout);if(runtimeGeneration===generation){sending=false;abortRequest=null;$('send-button').disabled=false;$('send-button').textContent='发送 ↗';}}
+  };
+  const exportTranscript = () => {const text=chatHistory.map(m=>`${m.time} [阶段${m.node+1}] ${m.sender||'学生'}：\n${m.text}`).join('\n\n');downloadText(nameSafe(currentProject().title)+'-实训对话.txt',text,'text/plain');};
+  const openSettings = () => {$('settings-modal').classList.remove('hidden');$('provider-select').value=config.provider;$('api-key-input').value=config.key;$('model-input').value=config.model||modelDefaults[config.provider]||'';$('custom-url-input').value=config.url;syncSettings();};
+  const closeSettings = ()=>$('settings-modal').classList.add('hidden');
+  const syncSettings = () => {const prov=$('provider-select').value;$('api-extra').classList.toggle('hidden',prov==='offline');$('custom-extra').classList.toggle('hidden',prov!=='custom');};
+  const saveSettings = () => {
+    const provider=$('provider-select').value;
+    if(!providers.includes(provider))return notify('未知模型服务商');
+    const model=$('model-input').value.trim();const url=$('custom-url-input').value.trim();const key=$('api-key-input').value.trim();
+    if(provider!=='offline'&&!key)return notify('请先输入临时 API Key。');
+    if(provider!=='offline'&&!model)return notify('请填写模型名称。');
+    if(provider==='custom') {let parsed;try {parsed=new URL(url);} catch {return notify('自定义 API 地址不是合法 URL');}if(parsed.protocol!=='https:' && !(parsed.protocol==='http:' && ['localhost','127.0.0.1'].includes(parsed.hostname)))return notify('自定义接口必须是 HTTPS 或本机 localhost');}
+    Object.assign(config,{provider,model,url,key:provider==='offline'?'':key});
+    try{localStorage.setItem(PREF_KEY,JSON.stringify({provider,model,url}));}catch{}
+    closeSettings();if(view==='runtime')renderRuntime();notify('设置已更新，API Key 仅保留在当前页面内存中。');
+  };
+  // Flow chart: native SVG edges + pointer-driven nodes; no external diagram dependency.
+  let flowZoom=1;
+  const setFlowZoom = value => {
+    flowZoom=Math.max(.5,Math.min(1.4,Math.round(value*20)/20));
+    $('flow-world').style.zoom=flowZoom;
+    $('flow-zoom-label').textContent=Math.round(flowZoom*100)+'%';
+  };
+  const fitFlowGraph = () => {
+    const p=currentProject();if(!p)return;
+    const maxX=Math.max(...p.nodes.map(n=>n.x+POS_W))+70;
+    const minX=Math.min(...p.nodes.map(n=>n.x));
+    const candidate=Math.min(1,$('flow-viewport').clientWidth/(maxX-minX+140));
+    setFlowZoom(candidate);$('flow-viewport').scrollLeft=Math.max(0,(minX-30)*flowZoom);
+    $('flow-viewport').scrollTop=0;
+  };
+  $('flow-zoom-in').addEventListener('click',()=>setFlowZoom(flowZoom+.1));
+  $('flow-zoom-out').addEventListener('click',()=>setFlowZoom(flowZoom-.1));
+  $('flow-zoom-label').addEventListener('click',()=>setFlowZoom(1));
+  $('flow-zoom-fit').addEventListener('click',fitFlowGraph);
+  const graphNode = id => currentProject()?.nodes.find(n=>n.id===id);
+  const graphEdge = id => currentProject()?.edges.find(e=>e.id===id);
+  const outgoing = id => (currentProject()?.edges||[]).filter(e=>e.from===id);
+  const renderEdgeEditor = () => {
+    const e=graphEdge(selectedEdgeId),p=currentProject();
+    if(!e){editorMode='node';renderNodeEditor();return;}
+    const from=graphNode(e.from),to=graphNode(e.to);
+    $('editor-fields').innerHTML=`
+      <div class="group"><div class="group-title"><span class="dot">连线</span> 设置剧情分支</div>
+        <div class="notice">这条连线决定：教师确认当前阶段完成后，可以跳转到哪个任务节点。</div>
+        <p class="small-note" style="line-height:1.8;margin-top:10px"><b>${esc(from?.name)}</b><br>↓<br><b>${esc(to?.name)}</b></p>
+      </div>
+      <div class="group"><div class="group-title"><span class="dot">01</span> 分支命名及判定条件</div>
+        <div class="field"><label for="edge-label">分支显示名称（可选）</label><input id="edge-label" data-edge-field="label" value="${esc(e.label)}" placeholder="例如：安全方案达标 / 补充练习"></div>
+        <div class="field"><label for="edge-condition">分支条件</label><select id="edge-condition" data-edge-field="condition"><option value="always" ${e.condition==='always'?'selected':''}>默认分支（始终可选）</option><option value="keyword" ${e.condition==='keyword'?'selected':''}>学生回答包含关键词</option></select></div>
+        <div class="field ${e.condition==='keyword'?'':'hidden'}" id="edge-keyword-wrap"><label for="edge-keyword">匹配的关键词（区分字面内容）</label><input id="edge-keyword" data-edge-field="keyword" value="${esc(e.keyword)}" placeholder="例如：通过 或 返工"></div>
+        <div class="notice">关键词只用于剧情导航，不代表正式考核通过。判断范围为当前节点的学生全部输入；教师最终确认要进入的分支。</div>
+      </div>
+      <div class="group"><div class="group-title"><span class="dot">02</span> 连线管理</div>
+        <button class="btn danger" type="button" data-edge-delete="yes">✕ 删除这条连线</button><p class="hint" style="margin-top:9px">单击画布上的箭头或分支标签可以重新编辑连线。</p>
+      </div>`;
+  };
+  const updateEdgeProperty = (field,value) => {
+    const edge=graphEdge(selectedEdgeId);if(!edge||!['label','condition','keyword'].includes(field))return;
+    if(field==='condition'){
+      if(value==='always' && currentProject().edges.some(e=>e.from===edge.from&&e.id!==edge.id&&e.condition==='always')){
+        notify('同一个节点只能存在一条默认分支，请先修改原有默认连线。');renderEdgeEditor();return;
+      }
+      edge.condition=value==='keyword'?'keyword':'always';
+    } else edge[field]=value.slice(0,100);
+    updateProject();renderGraph();
+    if(field==='condition')renderEdgeEditor();
+  };
+  const deleteEdge = id => {
+    const p=currentProject();const edge=graphEdge(id);if(!edge)return;
+    if(!confirm('确定删除该分支连线？'))return;
+    p.edges=p.edges.filter(e=>e.id!==id);
+    selectedEdgeId=null;editorMode='node';selectedNodeId=edge.from;
+    updateProject();renderStudio();notify('连线已删除。');
+  };
+  const edgeGeometry = e => {
+    const a=graphNode(e.from),b=graphNode(e.to);
+    if(!a||!b)return null;
+    const x1=a.x+POS_W-1,y1=a.y+73,x2=b.x+1,y2=b.y+73;
+    const bend=Math.max(80,Math.min(190,Math.abs(x2-x1)*.45));
+    return {path:`M ${x1} ${y1} C ${x1+bend} ${y1}, ${x2-bend} ${y2}, ${x2} ${y2}`,cx:(x1+x2)/2,cy:(y1+y2)/2};
+  };
+  const repaintEdges = () => {
+    const p=currentProject();if(!p)return;
+    const svg=$('flow-lines');
+    const w=parseFloat($('flow-world').style.width)||1500,h=parseFloat($('flow-world').style.height)||900;
+    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    svg.innerHTML=`<defs><marker id="flow-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#8599be" stroke-width="1.6"/></marker><marker id="flow-arrow-active" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#3564ee" stroke-width="1.8"/></marker></defs>`+
+      p.edges.map(e=>{
+        const g=edgeGeometry(e);if(!g)return '';
+        const active=selectedEdgeId===e.id;
+        const caption=(e.label.trim()||(e.condition==='keyword'?`包含：${e.keyword||'未设置关键词'}`:'默认')).slice(0,18);
+        const badgeWidth=Math.min(166,Math.max(47,caption.length*11+15));
+        const y=g.cy-16;
+        return `<g data-edge-id="${esc(e.id)}"><path class="edge-line ${active?'active':''}" d="${g.path}" marker-end="url(#${active?'flow-arrow-active':'flow-arrow'})"/><path class="edge-hit" d="${g.path}" data-edge-id="${esc(e.id)}"/><rect class="edge-label" data-edge-id="${esc(e.id)}" x="${g.cx-badgeWidth/2}" y="${y-2}" width="${badgeWidth}" height="24"/><text class="edge-text" x="${g.cx}" y="${y+14}" text-anchor="middle">${esc(caption)}</text></g>`;
       }).join('');
+  };
+  const renderGraph = () => {
+    const p=currentProject();if(!p)return;
+    const vp=$('flow-viewport'),saveX=vp.scrollLeft,saveY=vp.scrollTop;
+    const w=Math.max(1150,...p.nodes.map(n=>(n.x||0)+POS_W+120));
+    const h=Math.max(650,...p.nodes.map(n=>(n.y||0)+POS_H+95));
+    $('flow-world').style.width=w+'px';$('flow-world').style.height=h+'px';$('flow-world').style.zoom=flowZoom;
+    $('flow-nodes').innerHTML=p.nodes.map((n,i)=>`
+      <article class="flow-node ${selectedNodeId===n.id&&editorMode==='node'?'selected':''} ${p.startNodeId===n.id?'origin':''}" data-graph-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;" title="拖动调整节点位置；单击编辑剧本">
+        <button class="port input ${linkSourceId?'connecting':''}" type="button" data-port="input" aria-label="连接到 ${esc(n.name)}"></button>
+        <div class="flow-node-header"><span>任务 ${i+1}</span><span>${p.startNodeId===n.id?'★ 实训入口':'· 阶段节点'}</span></div>
+        <div class="flow-node-name">${esc(n.name||'未命名任务')}</div>
+        <div class="flow-node-role">${esc(n.roleName||'无角色')}</div>
+        <div class="flow-node-foot">${outgoing(n.id).length} 条输出分支 · 点击编辑内容</div>
+        <button class="port output ${linkSourceId===n.id?'connecting':''}" type="button" data-port="output" aria-label="从 ${esc(n.name)} 发起连线"></button>
+      </article>`).join('');
+    $('flow-guide').textContent=linkSourceId?`连接中：${graphNode(linkSourceId)?.name||''} → 请单击目标节点左侧圆点`:editorMode==='edge'?'已选中连线：可在右侧修改分支条件和关键词':'点击节点编写剧情，拖动卡片布局，点击右侧圆点再点击另一节点左侧圆点建立连线。';
+    $('flow-guide').classList.toggle('connecting',!!linkSourceId);
+    $('flow-stats').textContent=`${p.nodes.length} 个任务节点 · ${p.edges.length} 条连线 · 入口：${graphNode(p.startNodeId)?.name||'未设置'}`;
+    repaintEdges();vp.scrollLeft=saveX;vp.scrollTop=saveY;
+  };
+  const connectNodes = (from,to) => {
+    const p=currentProject();linkSourceId=null;
+    if(from===to){renderGraph();return notify('不能连接节点自身。');}
+    if(p.edges.some(e=>e.from===from&&e.to===to)){renderGraph();return notify('两个节点之间已有相同方向的连线，请点选该连线编辑。');}
+    if(p.edges.length>=150){renderGraph();return notify('每个项目最多 150 条连线。');}
+    const hasDefault=p.edges.some(e=>e.from===from&&e.condition==='always');
+    const edge=makeEdge(from,to,hasDefault?'keyword':'always');
+    p.edges.push(edge);selectedEdgeId=edge.id;editorMode='edge';
+    updateProject();renderStudio();notify(hasDefault?'新增了条件分支，请在右侧设置关键词。':'已连接，点击连线可调整分支条件。');
+  };
+  const analyzeFlow = p => {
+    const problems=[];const ids=new Set(p.nodes.map(n=>n.id));
+    if(!ids.has(p.startNodeId))problems.push('尚未设置有效的入口节点');
+    const seen=new Set(),pending=[p.startNodeId];
+    while(pending.length){const id=pending.shift();if(!ids.has(id)||seen.has(id))continue;seen.add(id);p.edges.filter(e=>e.from===id).forEach(e=>pending.push(e.to));}
+    const unreachable=p.nodes.filter(n=>!seen.has(n.id));
+    if(unreachable.length)problems.push('存在不可达节点：'+unreachable.map(n=>n.name).join('、'));
+    for(const n of p.nodes){const outs=p.edges.filter(e=>e.from===n.id);
+      if(outs.filter(e=>e.condition==='always').length>1)problems.push(`${n.name} 有多条默认分支`);
+      if(outs.some(e=>e.condition==='keyword'&&!e.keyword.trim()))problems.push(`${n.name} 的关键词分支尚未填写匹配词`);
+      if(outs.length&&!outs.some(e=>e.condition==='always'))problems.push(`${n.name} 没有默认分支，若回答不匹配可能无法跳转`);
     }
-
-    function renderMessages() {
-      const container = document.getElementById('chat-messages');
-      container.innerHTML = chatHistory.map(m => {
-        const isUser = m.role === 'user';
-        return `
-          <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
-            <div class="max-w-[85%] rounded-2xl p-3.5 shadow-sm text-xs leading-normal ${isUser ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'}">
-              ${!isUser ? `<div class="font-bold text-[11px] text-blue-600 mb-1">${m.sender}</div>` : ''}
-              <div class="whitespace-pre-wrap">${m.text}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-      container.scrollTop = container.scrollHeight;
+    if(!p.nodes.some(n=>!p.edges.some(e=>e.from===n.id)))problems.push('没有任何结束节点，请检查是否存在无限循环');
+    return problems;
+  };
+  const arrangeGraph = () => {
+    const p=currentProject();if(!p)return;
+    // Breadth-first layers, ignores back edges in cyclic flows; unreachable appended.
+    const level=new Map([[p.startNodeId,0]]),q=[p.startNodeId];
+    while(q.length){const id=q.shift();for(const e of p.edges.filter(e=>e.from===id))if(!level.has(e.to)){level.set(e.to,Math.min(12,level.get(id)+1));q.push(e.to);}}
+    let fallback=Math.max(0,...level.values())+1;
+    p.nodes.forEach(n=>{if(!level.has(n.id))level.set(n.id,fallback++);});
+    const rowByLevel=new Map();
+    p.nodes.forEach(n=>{const l=level.get(n.id);const row=rowByLevel.get(l)||0;rowByLevel.set(l,row+1);n.x=65+l*325;n.y=110+row*230;});
+    updateProject();renderGraph();notify('节点已按连线层级排列。');
+  };
+  $('flow-validate').addEventListener('click',()=>{const issues=analyzeFlow(currentProject());alert(issues.length?`流程检查发现 ${issues.length} 项需要关注：\n\n`+issues.map((x,i)=>`${i+1}. ${x}`).join('\n'):'流程检查通过：入口可达所有节点、条件分支已配置。此检查不代表教学考核正确。');});
+  $('flow-arrange').addEventListener('click',arrangeGraph);
+  $('flow-cancel-link').addEventListener('click',()=>{linkSourceId=null;renderGraph();});
+  $('flow-nodes').addEventListener('click',event=>{
+    const port=event.target.closest('[data-port]');
+    const card=event.target.closest('[data-graph-node]');if(!card)return;
+    if(port){const id=card.dataset.graphNode;
+      if(port.dataset.port==='output'){linkSourceId=id;renderGraph();return;}
+      if(!linkSourceId)return notify('请先点击起始节点右侧圆点，再点击目标节点左侧圆点。');
+      return connectNodes(linkSourceId,id);
     }
+    selectedNodeId=card.dataset.graphNode;selectedEdgeId=null;editorMode='node';renderStudio();
+  });
+  $('flow-lines').addEventListener('click',event=>{
+    const target=event.target.closest('[data-edge-id]');if(!target)return;
+    selectedEdgeId=target.dataset.edgeId;selectedNodeId=graphEdge(selectedEdgeId)?.from||selectedNodeId;editorMode='edge';linkSourceId=null;renderStudio();
+  });
+  $('flow-nodes').addEventListener('pointerdown',e=>{
+    if(e.button!==0||e.target.closest('.port'))return;
+    const card=e.target.closest('[data-graph-node]');if(!card)return;
+    const n=graphNode(card.dataset.graphNode);if(!n)return;
+    flowDrag={id:n.id,card,x:e.clientX,y:e.clientY,origX:n.x,origY:n.y,moved:false};
+    card.setPointerCapture(e.pointerId);
+  });
+  $('flow-nodes').addEventListener('pointermove',e=>{
+    if(!flowDrag)return;
+    const d=flowDrag,n=graphNode(d.id);if(!n)return;
+    const dx=e.clientX-d.x,dy=e.clientY-d.y;
+    if(!d.moved&&Math.hypot(dx,dy)<4)return;
+    d.moved=true;d.card.classList.add('moving');
+    n.x=Math.max(15,Math.min(3800,Math.round((d.origX+dx/flowZoom)/10)*10));
+    n.y=Math.max(15,Math.min(2800,Math.round((d.origY+dy/flowZoom)/10)*10));
+    d.card.style.left=n.x+'px';d.card.style.top=n.y+'px';repaintEdges();
+  });
+  const endGraphDrag=e=>{
+    if(!flowDrag)return;
+    const d=flowDrag;flowDrag=null;d.card.classList.remove('moving');
+    if(d.moved){updateProject();renderGraph();}
+  };
+  $('flow-nodes').addEventListener('pointerup',endGraphDrag);
+  $('flow-nodes').addEventListener('pointercancel',endGraphDrag);
 
-    async function sendMessage() {
-      const input = document.getElementById('user-input');
-      const text = input.value.trim();
-      if (!text) return;
-
-      chatHistory.push({ role: 'user', text: text });
-      input.value = '';
-      renderMessages();
-
-      const activeNode = currentProject.nodes[currentNodeIndex];
-
-      // 若未选择真实大模型，或为 offline 模式，直接走智能离线仿真
-      if (apiConfig.provider === 'offline' || !apiConfig.key) {
-        setTimeout(() => handleOfflineResponse(text, activeNode), 450);
-        return;
-      }
-
-      // 组装通用 Prompt
-      const sysInstruction = `你正在一个工程/专业教学模拟器中扮演【${activeNode.roleName}】。
-人设与风格：${activeNode.persona}。
-当前学生正在进行的教学节点是【${activeNode.name}】。
-该节点的考核指标是：${activeNode.rubric}。
-请以该角色的口吻回复学生。若学生的方案切实涵盖了考核要点，请予以肯定并在回复的最后单起一行输出：[PASS_NODE]；若尚未达标，请指出遗漏并反诘引导。`;
-
-      try {
-        let reply = '';
-        if (apiConfig.provider === 'gemini') {
-          // Google Gemini 协议
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiConfig.key}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: sysInstruction }] },
-              contents: chatHistory.map(h => ({
-                role: h.role === 'user' ? 'user' : 'model',
-                parts: [{ text: h.text }]
-              }))
-            })
-          });
-          const data = await res.json();
-          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        } else {
-          // 通用 OpenAI 兼容协议 (DeepSeek, 阿里千问, 智谱GLM, Kimi等)
-          let endpoint = '';
-          let modelName = '';
-
-          switch(apiConfig.provider) {
-            case 'deepseek':
-              endpoint = 'https://api.deepseek.com/chat/completions';
-              modelName = 'deepseek-chat';
-              break;
-            case 'qwen':
-              endpoint = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
-              modelName = 'qwen-plus';
-              break;
-            case 'zhipu':
-              endpoint = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-              modelName = 'glm-4-flash';
-              break;
-            case 'kimi':
-              endpoint = 'https://api.moonshot.cn/v1/chat/completions';
-              modelName = 'moonshot-v1-8k';
-              break;
-            case 'custom':
-              endpoint = (apiConfig.customUrl || '').replace(/\/+$/, '') + '/chat/completions';
-              modelName = 'gpt-3.5-turbo';
-              break;
-          }
-
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiConfig.key}`
-            },
-            body: JSON.stringify({
-              model: modelName,
-              messages: [
-                { role: 'system', content: sysInstruction },
-                ...chatHistory.map(h => ({
-                  role: h.role === 'assistant' ? 'assistant' : 'user',
-                  content: h.text
-                }))
-              ]
-            })
-          });
-          const data = await res.json();
-          reply = data.choices?.[0]?.message?.content || '';
-        }
-
-        if (reply.includes('[PASS_NODE]')) {
-          reply = reply.replace('[PASS_NODE]', '').trim();
-          chatHistory.push({ role: 'assistant', text: reply, sender: activeNode.roleName });
-          renderMessages();
-          setTimeout(() => evaluateMilestone(false), 800);
-          return;
-        }
-
-        chatHistory.push({ role: 'assistant', text: reply || '收到，请继续展开。', sender: activeNode.roleName });
-      } catch (err) {
-        // 请求失败自动兜底，防止学生界面卡住
-        handleOfflineResponse(text, activeNode);
-      }
-      renderMessages();
+  // Delegated actions prevent user-authored project data from becoming inline JavaScript.
+  document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.nav==='runtime'){if(view==='runtime'){showView('runtime');}else startRuntime();}
+    else {if(view==='studio')flushSave();showView(b.dataset.nav);}
+  }));
+  $('new-project-button').addEventListener('click',newProject);
+  $('import-button').addEventListener('click',()=>$('import-file').click());
+  $('export-all-button').addEventListener('click',exportAll);
+  $('projects-grid').addEventListener('click',e=>{
+    const btn=e.target.closest('button[data-card]');if(!btn)return;const id=btn.dataset.id;const action=btn.dataset.card;
+    if(action==='edit')selectProject(id,'studio');else if(action==='run')selectProject(id,'runtime');else if(action==='more'){
+      const choice=prompt('输入操作编号：\n1 = 复制项目\n2 = 删除项目\n3 = 取消','1');
+      if(choice==='1')copyProject(id);else if(choice==='2')deleteProject(id);
     }
-
-    // 智能离线判定引擎
-    function handleOfflineResponse(userText, node) {
-      const keywords = node.rubric.split(/[、，,\s/]+/).filter(k => k.length > 1);
-      const hitCount = keywords.filter(k => userText.includes(k)).length;
-
-      if (hitCount >= 1 || userText.length > 25) {
-        chatHistory.push({
-          role: 'assistant',
-          text: `很好！你的汇报涵盖了关键要点（${keywords.slice(0, 2).join('、')}等），符合技术规范与安全流程，本阶段考核达标！`,
-          sender: node.roleName
-        });
-        renderMessages();
-        setTimeout(() => evaluateMilestone(false), 800);
-      } else if (userText.includes('提示') || userText.includes('标准') || userText.includes('吗') || userText.length < 6) {
-        chatHistory.push({
-          role: 'assistant',
-          text: `请注意，当前阶段的核心要求是：【${node.rubric}】。请结合你的作业规范，将这些要素完整陈述给我。`,
-          sender: node.roleName
-        });
-        renderMessages();
-      } else {
-        chatHistory.push({
-          role: 'assistant',
-          text: `思路大体可行，但方案还不够严密。请重点明确【${keywords[0] || '具体关键规程'}】后再做汇报。`,
-          sender: node.roleName
-        });
-        renderMessages();
-      }
-    }
-
-    function sendQuickPrompt(promptText) {
-      document.getElementById('user-input').value = promptText;
-      sendMessage();
-    }
-
-    function evaluateMilestone(manual = false) {
-      const activeNode = currentProject.nodes[currentNodeIndex];
-      const isLastNode = currentNodeIndex === currentProject.nodes.length - 1;
-
-      if (!isLastNode) {
-        currentNodeIndex++;
-        const nextNode = currentProject.nodes[currentNodeIndex];
-        chatHistory.push({
-          role: 'assistant',
-          text: `🎉【节点完成】阶段【${activeNode.name}】已达成！\n\n🔄 系统已切换至下个任务节点：【${nextNode.name}】\n当前接管导师：【${nextNode.roleName}】\n\n${nextNode.greeting}`,
-          sender: '实训系统通知'
-        });
-        updateNodeUI();
-        renderMessages();
-      } else {
-        chatHistory.push({
-          role: 'assistant',
-          text: `🏆 恭喜通关！您已顺利完成【${currentProject.title}】的全部实训考核任务！各项考核指标均已达标合格。`,
-          sender: '实训系统通知'
-        });
-        renderMessages();
-      }
-    }
-
-    function toggleApiKeyModal() {
-      const modal = document.getElementById('api-modal');
-      modal.classList.toggle('hidden');
-      if (!modal.classList.contains('hidden')) {
-        document.getElementById('provider-select').value = apiConfig.provider;
-        document.getElementById('api-key-input').value = apiConfig.key || '';
-        document.getElementById('custom-url-input').value = apiConfig.customUrl || '';
-        handleProviderChange();
-      }
-    }
-
-    function handleProviderChange() {
-      const prov = document.getElementById('provider-select').value;
-      const keyBox = document.getElementById('key-input-container');
-      const urlBox = document.getElementById('custom-url-container');
-      if (prov === 'offline') {
-        keyBox.classList.add('hidden');
-      } else {
-        keyBox.classList.remove('hidden');
-        if (prov === 'custom') urlBox.classList.remove('hidden');
-        else urlBox.classList.add('hidden');
-      }
-    }
-
-    function saveApiConfig() {
-      apiConfig.provider = document.getElementById('provider-select').value;
-      apiConfig.key = document.getElementById('api-key-input').value.trim();
-      apiConfig.customUrl = document.getElementById('custom-url-input').value.trim();
-      localStorage.setItem('matin_api_config', JSON.stringify(apiConfig));
-      updateEngineDisplay();
-      toggleApiKeyModal();
-    }
-
-    window.onload = init;
-  </script>
+  });
+  $('editor-back').addEventListener('click',()=>{flushSave();showView('dashboard');});
+  $('editor-project-settings').addEventListener('click',()=>{editorMode='project';selectedEdgeId=null;renderStudio();});
+  $('add-node-button').addEventListener('click',addNode);
+  $('stage-items').addEventListener('click',e=>{const btn=e.target.closest('button[data-node-action]');if(btn)processNodeAction(btn.dataset.nodeAction,btn.dataset.id);});
+  $('editor-fields').addEventListener('input',e=>{
+    const f=e.target.dataset.field,pf=e.target.dataset.projectField;
+    if(f && fields.includes(f)){currentNode()[f]=e.target.value;if(f==='name'||f==='roleName'){renderStageList();renderGraph();}refreshPromptPreview();updateProject();}
+    else if(pf && projectFields.includes(pf)){currentProject()[pf]=e.target.value;if(pf==='title')$('studio-heading').textContent=e.target.value;updateProject();}
+  });
+  $('editor-fields').addEventListener('click',e=>{if(e.target.closest('[data-go-node]')){editorMode='node';renderStudio();}if(e.target.closest('[data-edge-delete]'))deleteEdge(selectedEdgeId);if(e.target.closest('[data-set-start]')){currentProject().startNodeId=selectedNodeId;updateProject();renderGraph();notify('已设置为实训入口。');}});
+  $('editor-fields').addEventListener('change',e=>{const field=e.target.dataset.edgeField;if(!field)return; updateEdgeProperty(field,e.target.value);});
+  $('save-project-button').addEventListener('click',()=>{flushSave();notify('剧本已保存到当前浏览器。');});
+  $('export-project-button').addEventListener('click',exportProject);
+  $('preview-project-button').addEventListener('click',()=>{flushSave();startRuntime();});
+  $('runtime-to-editor').addEventListener('click',()=>{editorMode='node';selectedEdgeId=null;showView('studio');});
+  $('restart-button').addEventListener('click',()=>{if(confirm('重新开始会清空当前预览对话，是否继续？'))startRuntime();});
+  $('teacher-next-button').addEventListener('click',advanceNode);
+  $('run-branches').addEventListener('click',e=>{const button=e.target.closest('[data-branch]');if(button)takeBranch(button.dataset.branch);});
+  $('transcript-button').addEventListener('click',exportTranscript);
+  $('chat-form').addEventListener('submit',e=>{e.preventDefault();sendMessage();});
+  $('user-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendMessage();}});
+  $('settings-open').addEventListener('click',openSettings);
+  $('settings-close').addEventListener('click',closeSettings);
+  $('settings-cancel').addEventListener('click',closeSettings);
+  $('settings-modal').addEventListener('click',e=>{if(e.target===$('settings-modal'))closeSettings();});
+  $('provider-select').addEventListener('change',()=>{$('model-input').value=modelDefaults[$('provider-select').value]||'';syncSettings();});
+  $('settings-save').addEventListener('click',saveSettings);
+  $('import-file').addEventListener('change',async e=>{
+    const file=e.target.files[0];e.target.value='';if(!file)return;
+    if(file.size>1024*1024)return notify('文件大于 1MB，请拆分导入。');
+    try{const parsed=JSON.parse(await file.text());let raw=Array.isArray(parsed.projects)?parsed.projects:parsed.project?[parsed.project]:[parsed];if(!raw.length||raw.length>100)throw new Error('项目数量应为 1～100');const imported=raw.map(normalizeProject);projects=[...imported,...projects].slice(0,100);projectId=imported[0].id;selectedNodeId=imported[0].nodes[0].id;flushSave();renderDashboard();notify(`成功导入 ${imported.length} 个项目。`);}catch(err){notify(`导入失败：${err.message}`);}
+  });
+  window.addEventListener('beforeunload',()=>{if(storeTimer)store();});
+  store();showView('dashboard');
+})();
+</script>
 </body>
 </html>

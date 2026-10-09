@@ -1,0 +1,75 @@
+{
+  "format": "matin-studio-catalog",
+  "version": 6,
+  "publishedAt": "2026-10-09T00:00:00Z",
+  "projects": [
+    {
+      "id": "sample-mat",
+      "title": "熔窑冷修模拟实训导师",
+      "category": "材料/工程",
+      "desc": "从安全技术交底到技术方案评审，跟随不同工程角色完成情境学习。",
+      "objective": "训练材料工程中的现场风险识别、施工方案论证与表达能力。",
+      "startNodeId": "mat-1",
+      "nodes": [
+        {
+          "id": "mat-1",
+          "name": "阶段一：安全技术交底",
+          "roleName": "安全督导员·赵科长",
+          "persona": "严谨负责，善于追问证据，不会代替学生回答。",
+          "context": "冷修作业开始前，需确认作业现场安全条件。",
+          "studentTask": "描述如何组织现场风险排查、安全交底和开工确认。",
+          "greeting": "你好，进入安全交底阶段。请先说说你认为最需要识别的现场风险。",
+          "rubric": "危险源识别、审批确认、现场复核、应急准备",
+          "hints": "我们可以先考虑现场危险源有哪些。",
+          "keywords": "风险,审批",
+          "passScore": "75",
+          "scriptRules": "风险=>能进一步说明应如何核查和记录危险源吗？"
+        },
+        {
+          "id": "mat-2",
+          "name": "阶段二：损毁勘验与方案制定",
+          "roleName": "总工程师·张工",
+          "persona": "关注技术证据、工程可行性和风险评估。",
+          "context": "耐火结构观察到局部损伤，需要制定经过专业审核的方案。",
+          "studentTask": "说明现场损伤记录、原因分析与方案评审流程。",
+          "greeting": "请说明进入勘验阶段后，你打算优先收集哪些证据？",
+          "rubric": "现象记录、原因分析、方案比选、审核复核",
+          "passScore": "75"
+        }
+      ],
+      "edges": [
+        {
+          "id": "mat-edge",
+          "from": "mat-1",
+          "to": "mat-2",
+          "condition": "always",
+          "keyword": "",
+          "label": "通过后继续"
+        }
+      ]
+    },
+    {
+      "id": "sample-auto",
+      "title": "电机控制与 SVPWM 实训",
+      "category": "自动化/控制",
+      "desc": "在电机低速振动情境下，逐步分析 PWM 死区、输出电压偏差和验证思路。",
+      "objective": "掌握控制系统问题分析与技术表达。",
+      "startNodeId": "auto-1",
+      "nodes": [
+        {
+          "id": "auto-1",
+          "name": "SVPWM 死区效应分析",
+          "roleName": "控制算法导师·李博士",
+          "persona": "鼓励学生先提出假设再进行验证。",
+          "context": "逆变器低速运行时出现转矩脉动。",
+          "studentTask": "解释死区时间对输出电压的潜在影响，并提出排查思路。",
+          "greeting": "电机低速运行时出现明显抖动，你觉得我们应该先关注哪一个控制参数？",
+          "rubric": "死区时间、电压误差、验证方法",
+          "passScore": "75",
+          "hints": "可以从互补开关管的死区设置入手。"
+        }
+      ],
+      "edges": []
+    }
+  ]
+}
